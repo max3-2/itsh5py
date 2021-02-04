@@ -435,16 +435,10 @@ def dump(hdf, data, compress=(True, 4), packer=pack_dataset, *args, **kwargs):
                 hdfgroup = hdfobject.create_group(key)
                 _recurse(value, hdfgroup)
             else:
-                # if isinstance(value, (pd.DataFrame, pd.Series)):
-                #     if hdfobject.name != '/':
-                #         raise IOError('Currently, pandas must be stored in root')
-                #     filename = hdfobject.file.filename
-                #     # Close the file...thanks, pandas!
-                #     hdfobject.file.close()
-                #     value.to_hdf(filename, key=key)
-                #     hdfobject =
-                # else:
-                packer(hdfobject, key, value, compress)
+                if isinstance(value, (pd.DataFrame, pd.Series)):
+                    warnings.warn('Currently, pandas must be stored in root', UserWarning)
+                else:
+                    packer(hdfobject, key, value, compress)
 
     if not hdf.endswith('.h5'): hdf += '.h5'
 
@@ -472,8 +466,10 @@ def dump(hdf, data, compress=(True, 4), packer=pack_dataset, *args, **kwargs):
             pandasKeys.append(k)
             fileMode = 'r+'
 
-    for k in pandasKeys:
-        _ = data.pop(k)
+    if pandasKeys:
+        data = data.copy()
+        for k in pandasKeys:
+            _ = data.pop(k)
 
     with h5py.File(hdf, fileMode, *args, **kwargs) as hdfl:
         _recurse(data, hdfl)
