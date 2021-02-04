@@ -412,7 +412,7 @@ def dump(hdf, data, compress=(True, 4), packer=pack_dataset, *args, **kwargs):
         Try to compress arrays, use carfully. If on, gzip mode is used in
         every case. Defaults to `(False, 0)`. When `(True,...)` the second
         element specifies the level from `0-9`, see h5py doc.
-        
+
     Returns
     --------
     hdf: `string`,
@@ -432,3 +432,5 @@ def dump(hdf, data, compress=(True, 4), packer=pack_dataset, *args, **kwargs):
         _recurse(data, hdfl)
 
     return hdf
+
+__all__ = ['dump', 'load', 'LazyHdfDict']
