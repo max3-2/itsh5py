@@ -9,6 +9,7 @@ from datetime import datetime
 from contextlib import contextmanager
 import h5py
 import numpy as np
+import pandas as pd
 import yaml
 
 TYPEID = '_TYPE_'
@@ -428,8 +429,18 @@ def dump(hdf, data, compress=(True, 4), packer=pack_dataset, *args, **kwargs):
             else:
                 packer(hdfobject, key, value, compress)
 
-    with h5py.File(hdf, 'w', *args, **kwargs) as hdfl:
-        _recurse(data, hdfl)
+    if isinstance(data, pd.DataFrame):
+        if compress[0]:
+            store = pd.HDFStore(hdf, compress=compress[1], complib='blosc:zstd')
+        else:
+            store = pd.HDFStore(hdf, compress=None)
+
+        store.put('pd_dataframe', data)
+        store.close()
+
+    else:
+        with h5py.File(hdf, 'w', *args, **kwargs) as hdfl:
+            _recurse(data, hdfl)
 
     return hdf
 
