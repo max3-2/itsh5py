@@ -179,25 +179,29 @@ def load(hdf, lazy=False, unpacker=unpack_dataset, *args, **kwargs):
 
     def _recurse(hdfobject, datadict):
         for key, value in hdfobject.items():
-            if TYPEID in value.attrs:
-                if value.attrs[TYPEID] == 'tuple':
-                    datadict[key] = _recurseIterData(value, True)
-                elif value.attrs[TYPEID] == 'list':
-                    datadict[key] = _recurseIterData(value)
-                else:
-                    datadict[key] = unpacker(value)
+            if 'pandas_type' in value.attrs:
+                # This is a dataframe or a series...
+                datadict[key] = pd.read_hdf(hdfobject.filename, key)
+            else:
+                if TYPEID in value.attrs:
+                    if value.attrs[TYPEID] == 'tuple':
+                        datadict[key] = _recurseIterData(value, True)
+                    elif value.attrs[TYPEID] == 'list':
+                        datadict[key] = _recurseIterData(value)
+                    else:
+                        datadict[key] = unpacker(value)
 
-            elif isinstance(value, h5py.Group) or isinstance(value, LazyHdfDict):
-                if lazy:
-                    datadict[key] = LazyHdfDict()
-                else:
-                    datadict[key] = {}
-                datadict[key] = _recurse(value, datadict[key])
+                elif isinstance(value, h5py.Group) or isinstance(value, LazyHdfDict):
+                    if lazy:
+                        datadict[key] = LazyHdfDict()
+                    else:
+                        datadict[key] = {}
+                    datadict[key] = _recurse(value, datadict[key])
 
-            elif isinstance(value, h5py.Dataset):
-                if not lazy:
-                    value = unpacker(value)
-                datadict[key] = value
+                elif isinstance(value, h5py.Dataset):
+                    if not lazy:
+                        value = unpacker(value)
+                    datadict[key] = value
 
         return datadict
 
@@ -228,10 +232,14 @@ def load(hdf, lazy=False, unpacker=unpack_dataset, *args, **kwargs):
     # Finally, add the rest from the file. If not lazy, close it right away.
     # If lazy, the file must stay open.
     data = _recurse(hdfl, data)
+
     if lazy:
         return data
 
     hdfl.close()
+    if len(data.keys()) == 1:
+        data = data[list(data.keys())[0]]
+
     return data
 
 def pack_dataset(hdfobject, key, value, compress):
@@ -427,8 +435,20 @@ def dump(hdf, data, compress=(True, 4), packer=pack_dataset, *args, **kwargs):
                 hdfgroup = hdfobject.create_group(key)
                 _recurse(value, hdfgroup)
             else:
+                # if isinstance(value, (pd.DataFrame, pd.Series)):
+                #     if hdfobject.name != '/':
+                #         raise IOError('Currently, pandas must be stored in root')
+                #     filename = hdfobject.file.filename
+                #     # Close the file...thanks, pandas!
+                #     hdfobject.file.close()
+                #     value.to_hdf(filename, key=key)
+                #     hdfobject =
+                # else:
                 packer(hdfobject, key, value, compress)
 
+    if not hdf.endswith('.h5'): hdf += '.h5'
+
+    # Single dataframe
     if isinstance(data, pd.DataFrame):
         if compress[0]:
             store = pd.HDFStore(hdf, compress=compress[1], complib='blosc:zstd')
@@ -438,9 +458,25 @@ def dump(hdf, data, compress=(True, 4), packer=pack_dataset, *args, **kwargs):
         store.put('pd_dataframe', data)
         store.close()
 
-    else:
-        with h5py.File(hdf, 'w', *args, **kwargs) as hdfl:
-            _recurse(data, hdfl)
+        return hdf
+
+    # Dataframe in dict. Pandas is stored in advance...stupid file lock in pandas....
+    pandasKeys = list()
+    fileMode = 'w'
+    for k, v in data.items():
+        if isinstance(v, (pd.DataFrame, pd.Series)):
+            if compress[0]:
+                v.to_hdf(hdf, key=k, mode=fileMode, compress=compress[1], complib='blosc:zstd')
+            else:
+                v.to_hdf(hdf, key=k, mode=fileMode, compress=None)
+            pandasKeys.append(k)
+            fileMode = 'r+'
+
+    for k in pandasKeys:
+        _ = data.pop(k)
+
+    with h5py.File(hdf, fileMode, *args, **kwargs) as hdfl:
+        _recurse(data, hdfl)
 
     return hdf
 
