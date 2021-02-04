@@ -1,0 +1,43 @@
+# gitignore to reduce data transfer when adding .
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*__pycache__*
+*/__pycache__/*
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Translations
+*.mo
+*.pot
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# pyCharm project setting
+.idea
+.idea/
+
+# ms visual code settings 
+.vscode
+
+# mac folder index
+.DS_STORE
+Thumbs.db
+
+# pdfs
+*.pdf
+
+# Sphinx documentation
+doc/_build/
+doc/_static/
+doc/_templates/
+
+# build
+*.egg*
+build/
+dist/
