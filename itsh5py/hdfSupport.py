@@ -10,7 +10,6 @@ from contextlib import contextmanager
 import h5py
 import numpy as np
 import yaml
-import deepdish.io as dio
 
 TYPEID = '_TYPE_'
 
@@ -97,7 +96,6 @@ def unpack_dataset(item):
     -------
     value:
         Unpacked Data
-
     """
     if TYPEID in item.attrs:
         if item.attrs[TYPEID] == 'datetime':
@@ -133,7 +131,6 @@ def unpack_dataset(item):
         value = item[()]
 
     return value
-
 
 def load(hdf, lazy=False, unpacker=unpack_dataset, *args, **kwargs):
     """Returns a dictionary containing the groups as keys and the datasets as
@@ -213,64 +210,28 @@ def load(hdf, lazy=False, unpacker=unpack_dataset, *args, **kwargs):
     else:
         data = {}
 
-    # deepdish fallback
-    # Step one: Check for GA nad other special files. This is so messed up by deepdish
-    # that we just load it and return to re-save
-    if 'ga' in hdfl.keys():
-        # if not isinstance(hdfl['ga']['log']['Gen'], h5py.Dataset):
-        #     if not list(hdfl['ga']['log']['Gen'].keys()):
-        if hdfl['ga'].attrs:
-            warnings.warn('GA file type with deepdish detected, using deepdish fallback')
-            hdfl.close()
-            return (dio.load(hdf), True)
-
-    if 'imgfile' in hdfl.attrs:
-        if isinstance(hdfl.attrs['imgfile'], np.bytes_):
-            warnings.warn('Old pointset with deepdish detected, using deepdish fallback')
-            hdfl.close()
-            return (dio.load(hdf), True)
-
-    if '__mz' in hdfl.attrs or 'mz' in hdfl.attrs:
-        warnings.warn('Old mesh with deepdish detected, using deepdish fallback')
-        hdfl.close()
-        return (dio.load(hdf), True)
-
-    if 'finalCoeffs' in hdfl.keys():
-        if 'locs' in hdfl.attrs:
-            warnings.warn('Old inSitu Cal. with deepdish detected, using deepdish fallback')
-            hdfl.close()
-            return (dio.load(hdf), True)
-
-    # Step two: If its compressed with blosc, load with dd fallback
     _, v0 = list(hdfl.items())[0]
     try:
         unpacker(v0)
-    except (OSError, TypeError):
-        warnings.warn('blosc file detected, using deepdish fallback',
-                      RuntimeWarning)
-        hdfl.close()
-        return (dio.load(hdf), True)
 
     except AttributeError:
         # The new file ist correctly build and this simple check yields an
         # AttributeError, no further actions are needed
         ...
 
-    # Add deprecation support for scalars saved as attrs by deepdish
+    # Add deprecation support for scalars saved as attrs by other methods
     loadAdd = [s for s in hdfl.attrs if s != s.upper()]
     for k in loadAdd:
         data[k] = hdfl.attrs[k]
 
     # Finally, add the rest from the file. If not lazy, close it right away.
     # If lazy, the file must stay open.
-    # TODO: Add file release when another file is opened.
     data = _recurse(hdfl, data)
     if lazy:
-        return (data, False)
+        return data
 
     hdfl.close()
-    return (data, False)
-
+    return data
 
 def pack_dataset(hdfobject, key, value, compress):
     """Packs a given key value pair into a dataset in the given hdfobject.
@@ -429,7 +390,7 @@ def pack_dataset(hdfobject, key, value, compress):
                 ), UserWarning)
 
 
-def dump(hdf, data, compress=(True, 1), packer=pack_dataset, *args, **kwargs):
+def dump(hdf, data, compress=(True, 4), packer=pack_dataset, *args, **kwargs):
     """
     Adds keys of given dict as groups and values as datasets to the given
     hdf-file (by string or object) or group object.
@@ -451,6 +412,11 @@ def dump(hdf, data, compress=(True, 1), packer=pack_dataset, *args, **kwargs):
         Try to compress arrays, use carfully. If on, gzip mode is used in
         every case. Defaults to `(False, 0)`. When `(True,...)` the second
         element specifies the level from `0-9`, see h5py doc.
+        
+    Returns
+    --------
+    hdf: `string`,
+        Path to new file
     """
     def _recurse(datadict, hdfobject):
         for key, value in datadict.items():
@@ -465,4 +431,4 @@ def dump(hdf, data, compress=(True, 1), packer=pack_dataset, *args, **kwargs):
     with h5py.File(hdf, 'w', *args, **kwargs) as hdfl:
         _recurse(data, hdfl)
 
-    # return hdf
+    return hdf
