@@ -150,12 +150,9 @@ def load(hdf, lazy=False, unpacker=unpack_dataset, *args, **kwargs):
 
     Returns
     -------
-    result : `tuple`
-        A tuple with:
+    result : `dict`
         The dictionary containing all groupnames as keys and datasets as
         values.
-        A flag if this was emergency loaded with deepdish so the file can be
-        converted to new format.
     """
     def _recurseIterData(value, isTuple=False):
         dl = list()
