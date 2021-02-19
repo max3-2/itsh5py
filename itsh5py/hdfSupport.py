@@ -14,31 +14,31 @@ import yaml
 
 TYPEID = '_TYPE_'
 
-# removed due to safe close logic below
+@contextmanager
+def hdf_file(hdf, mode, lazy=True, *args, **kwargs):
+    """Context manager yields h5 file if hdf is str, otherwise just yield hdf
+    as is.
 
-# @contextmanager
-# def hdf_file(hdf, mode, lazy=True, *args, **kwargs):
-#     """Context manager yields h5 file if hdf is str, otherwise just yield hdf
-#     as is.
-
-#     Parameters
-#     ----------
-#     hdf: `string`, `h5py.File()`, `h5py.Group()`
-#         (path to file) or h5 types
-#     lazy: `bool`
-#         If True, the datasets are lazy loaded at the moment an item is
-#         requested.
-#     args, kwargs:
-#         ..are passed on to `h5py.File`
-#     """
-#     if isinstance(hdf, str):
-#         if not lazy:
-#             with h5py.File(hdf, mode=mode, *args, **kwargs) as hdf:
-#                 yield hdf
-#         else:
-#             yield h5py.File(hdf, mode=mode, *args, **kwargs)
-#     else:
-#         yield hdf
+    Parameters
+    ----------
+    hdf: `str`, `h5py.File()`, `h5py.Group()`
+        (path to file) or h5 types
+    mode : `str`
+        Mode to use when a file is supplied.
+    lazy: `bool`
+        If True, the datasets are lazy loaded at the moment an item is
+        requested.
+    args, kwargs:
+        ..are passed on to `h5py.File`
+    """
+    if isinstance(hdf, str):
+        if not lazy:
+            with h5py.File(hdf, mode=mode, *args, **kwargs) as hdf:
+                yield hdf
+        else:
+            yield h5py.File(hdf, mode=mode, *args, **kwargs)
+    else:
+        yield hdf
 
 
 class LazyHdfDict(UserDict):
@@ -68,6 +68,7 @@ class LazyHdfDict(UserDict):
         dict(this_instance) then to get a real dict.
         """
         load(self, lazy=False)
+        # Add close here?
 
     def close(self):
         """Closes the h5file if provided at initialization."""
