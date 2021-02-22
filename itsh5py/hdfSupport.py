@@ -134,7 +134,7 @@ def unpack_dataset(item):
 
     return value
 
-def load(hdf, lazy=False, unpacker=unpack_dataset, *args, **kwargs):
+def load(hdf, lazy=False, unpacker=unpack_dataset):
     """Returns a dictionary containing the groups as keys and the datasets as
     values from given hdf file.
 
@@ -145,7 +145,7 @@ def load(hdf, lazy=False, unpacker=unpack_dataset, *args, **kwargs):
     lazy: `bool`
         If True, the datasets are lazy loaded at the moment an item is
         requested. Defaults to False, future releases planned with True.
-    upacker : `callable`
+    unpacker : `callable`
         Unpack function gets `value` of type h5py.Dataset.
         Must return the data you would like to have it in the returned dict.
 
@@ -223,9 +223,12 @@ def load(hdf, lazy=False, unpacker=unpack_dataset, *args, **kwargs):
         ...
 
     # Add deprecation support for scalars saved as attrs by other methods
-    loadAdd = [s for s in hdfl.attrs if s != s.upper()]
-    for k in loadAdd:
-        data[k] = hdfl.attrs[k]
+    # loadAdd = [s for s in hdfl.attrs if s != s.upper()]
+    # for k in loadAdd:
+    #     data[k] = hdfl.attrs[k]
+    # Attributes are loaded into a dict so this does not explode in complexity
+    # Unwrap them on the way
+    data['attrs'] = {k: v for k, v in hdfl.attrs.items()}
 
     # Finally, add the rest from the file. If not lazy, close it right away.
     # If lazy, the file must stay open.
