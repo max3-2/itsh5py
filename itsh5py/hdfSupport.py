@@ -307,29 +307,29 @@ def pack_dataset(hdfobject, key, value, compress):
                     name=name, data=array)
 
     def _iterateIterData(hdfobject, key, value, typeID):
-            ds = hdfobject.create_group(key)
-            elementsOrder = int(np.floor(np.log10(len(value))) + 1)
-            fmt = 'i_{:0' + str(elementsOrder) + 'd}'
-            for i, v in enumerate(value):
-                if isinstance(v, tuple):
-                    _iterateIterData(ds, fmt.format(i), v, "tuple")
-                elif isinstance(v, list):
-                    # check for mixed type, if yes, dump to group as tuple
-                    if not all([type(v) == type(value[0]) for v in value]):
-                        _iterateIterData(hdfobject, key, value, "list")
-                    else:
-                        _iterateIterData(ds, fmt.format(i), v, "list")
+        ds = hdfobject.create_group(key)
+        elementsOrder = int(np.floor(np.log10(len(value))) + 1)
+        fmt = 'i_{:0' + str(elementsOrder) + 'd}'
+        for i, v in enumerate(value):
+            if isinstance(v, tuple):
+                _iterateIterData(ds, fmt.format(i), v, "tuple")
+            elif isinstance(v, list):
+                # check for mixed type, if yes, dump to group as tuple
+                if not all([type(v) == type(value[0]) for v in value]):
+                    _iterateIterData(hdfobject, key, value, "list")
                 else:
-                    if isinstance(v, np.ndarray):
-                        _dumpArray(fmt.format(i), v, ds, compress)
-                    else:
-                        if isinstance(v, np.str_) or isinstance(v, np.str):
-                            v = str(v)
-                        ds.create_dataset(name=fmt.format(i), data=v)
+                    _iterateIterData(ds, fmt.format(i), v, "list")
+            else:
+                if isinstance(v, np.ndarray):
+                    _dumpArray(fmt.format(i), v, ds, compress)
+                else:
+                    if isinstance(v, np.str_) or isinstance(v, np.str):
+                        v = str(v)
+                    ds.create_dataset(name=fmt.format(i), data=v)
 
-            ds.attrs.create(
-                name=TYPEID,
-                data=str(typeID))
+        ds.attrs.create(
+            name=TYPEID,
+            data=str(typeID))
 
     isdt = None
     if isinstance(value, datetime):
