@@ -131,6 +131,13 @@ def unpack_dataset(item):
 
     else:
         value = item[()]
+        if isinstance(value, bytes):
+            # This is most likely a str...
+            try:
+                value = item.asstr()[()]
+            except Exception as e:
+                warning.warn(f'Converting bytes to str failed: {e}', RuntimeWarning)
+                value = item[()]
 
     return value
 
