@@ -212,6 +212,10 @@ def load(hdf, lazy=False, unpacker=unpack_dataset):
 
     # hard open instead of with so close is save when returning
     # hdfl = hdf_file(hdf, 'r', lazy=lazy, *args, **kwargs)
+
+    # Fixing windows issues
+    if '\\' in hdf:
+        hdf = hdf.replace('\\', '/')
     hdfl = h5py.File(hdf, 'r') #, lazy=lazy, *args, **kwargs)
 
     # This is the logic which was indented under with
