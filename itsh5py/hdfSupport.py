@@ -196,7 +196,10 @@ def load(hdf, lazy=False, unpacker=unpack_dataset):
                     elif value.attrs[TYPEID] == 'list':
                         datadict[key] = _recurseIterData(value)
                     else:
-                        datadict[key] = unpacker(value)
+                        if lazy:
+                            datadict[key] = value
+                        else:
+                            datadict[key] = unpacker(value)
 
                 elif isinstance(value, h5py.Group) or isinstance(value, LazyHdfDict):
                     if lazy:
@@ -206,9 +209,10 @@ def load(hdf, lazy=False, unpacker=unpack_dataset):
                     datadict[key] = _recurse(value, datadict[key])
 
                 elif isinstance(value, h5py.Dataset):
-                    if not lazy:
+                    if lazy:
+                        datadict[key] = value
+                    else:
                         value = unpacker(value)
-                    datadict[key] = value
 
         return datadict
 
