@@ -224,19 +224,6 @@ def load(hdf, lazy=False, unpacker=unpack_dataset):
     else:
         data = {}
 
-    _, v0 = list(hdfl.items())[0]
-    try:
-        unpacker(v0)
-
-    except AttributeError:
-        # The new file ist correctly build and this simple check yields an
-        # AttributeError, no further actions are needed
-        ...
-
-    # Add deprecation support for scalars saved as attrs by other methods
-    # loadAdd = [s for s in hdfl.attrs if s != s.upper()]
-    # for k in loadAdd:
-    #     data[k] = hdfl.attrs[k]
     # Attributes are loaded into a dict so this does not explode in complexity
     # Unwrap them on the way
     data['attrs'] = {k: v for k, v in hdfl.attrs.items()}
@@ -457,7 +444,7 @@ def dump(hdf, data, compress=(True, 4), packer=pack_dataset, *args, **kwargs):
     if not hdf.endswith('.h5'): hdf += '.h5'
 
     # Single dataframe
-    if isinstance(data, pd.DataFrame):
+    if isinstance(data, (pd.DataFrame, pd.Series)):
         if compress[0]:
             store = pd.HDFStore(hdf, compress=compress[1], complib='zlib')
         else:
