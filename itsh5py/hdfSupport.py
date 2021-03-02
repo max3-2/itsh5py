@@ -16,33 +16,6 @@ from .queueHandler import addOpenFile, isOpen
 
 TYPEID = '_TYPE_'
 
-@contextmanager
-def hdf_file(hdf, mode, lazy=True, *args, **kwargs):
-    """Context manager yields h5 file if hdf is str, otherwise just yield hdf
-    as is.
-
-    Parameters
-    ----------
-    hdf: `str`, `h5py.File()`, `h5py.Group()`
-        (path to file) or h5 types
-    mode : `str`
-        Mode to use when a file is supplied.
-    lazy: `bool`
-        If True, the datasets are lazy loaded at the moment an item is
-        requested.
-    args, kwargs:
-        ..are passed on to `h5py.File`
-    """
-    if isinstance(hdf, str):
-        if not lazy:
-            with h5py.File(hdf, mode=mode, *args, **kwargs) as hdf:
-                yield hdf
-        else:
-            yield h5py.File(hdf, mode=mode, *args, **kwargs)
-    else:
-        yield hdf
-
-
 class LazyHdfDict(UserDict):
     """Helps loading data only if values from the dict are requested. This is
     done by reimplementing the __getitem__ method from dict. Additional args
@@ -484,4 +457,4 @@ def dump(hdf, data, compress=(True, 4), packer=pack_dataset, *args, **kwargs):
     return hdf
 
 
-__all__ = ['dump', 'load', 'LazyHdfDict', 'hdf_file']
+__all__ = ['dump', 'load', 'LazyHdfDict']
