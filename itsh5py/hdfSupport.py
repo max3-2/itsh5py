@@ -12,6 +12,8 @@ import numpy as np
 import pandas as pd
 import yaml
 
+from .queueHandler import addOpenFile, isOpen
+
 TYPEID = '_TYPE_'
 
 @contextmanager
@@ -68,7 +70,7 @@ class LazyHdfDict(UserDict):
         dict(this_instance) then to get a real dict.
         """
         load(self, lazy=False)
-        # Add close here?
+        self.close()
 
     def close(self):
         """Closes the h5file if provided at initialization."""
@@ -210,17 +212,17 @@ def load(hdf, lazy=False, unpacker=unpack_dataset):
 
         return datadict
 
-    # hard open instead of with so close is save when returning
-    # hdfl = hdf_file(hdf, 'r', lazy=lazy, *args, **kwargs)
-
     # Fixing windows issues
     if '\\' in hdf:
         hdf = hdf.replace('\\', '/')
-    hdfl = h5py.File(hdf, 'r') #, lazy=lazy, *args, **kwargs)
+    hdfl = h5py.File(hdf, 'r')
 
-    # This is the logic which was indented under with
     if lazy:
-        data = LazyHdfDict(_h5file=hdfl)
+        data = isOpen(hdf)
+        if data is None:
+            data = LazyHdfDict(_h5file=hdfl)
+            addOpenFile(hdf, hdfl)
+
     else:
         data = {}
 
