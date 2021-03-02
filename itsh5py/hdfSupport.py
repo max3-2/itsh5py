@@ -459,7 +459,7 @@ def dump(hdf, data, compress=(True, 4), packer=pack_dataset, *args, **kwargs):
     # Single dataframe
     if isinstance(data, pd.DataFrame):
         if compress[0]:
-            store = pd.HDFStore(hdf, compress=compress[1], complib='blosc:zstd')
+            store = pd.HDFStore(hdf, compress=compress[1], complib='zlib')
         else:
             store = pd.HDFStore(hdf, compress=None)
 
@@ -474,7 +474,7 @@ def dump(hdf, data, compress=(True, 4), packer=pack_dataset, *args, **kwargs):
     for k, v in data.items():
         if isinstance(v, (pd.DataFrame, pd.Series)):
             if compress[0]:
-                v.to_hdf(hdf, key=k, mode=fileMode, compress=compress[1], complib='blosc:zstd')
+                v.to_hdf(hdf, key=k, mode=fileMode, compress=compress[1], complib='zlib')
             else:
                 v.to_hdf(hdf, key=k, mode=fileMode, compress=None)
             pandasKeys.append(k)
