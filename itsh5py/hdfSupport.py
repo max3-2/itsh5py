@@ -30,6 +30,10 @@ class LazyHdfDict(UserDict):
         super().__init__(*args, **kwargs)
         self._h5file = _h5file  # used to close the file on deletion.
 
+    @property
+    def h5file(self):
+        return self._h5file
+
     def __getitem__(self, key):
         """Returns item and loads dataset if needed."""
         item = super().__getitem__(key)
@@ -47,10 +51,8 @@ class LazyHdfDict(UserDict):
 
     def close(self):
         """Closes the h5file if provided at initialization."""
-        if self._h5file and hasattr(self._h5file, 'close'):
-            self._h5file.close()
-
-        removeFromQueue(self._h5file.filename)
+        if self._h5file is not None:
+            removeFromQueue(self._h5file.filename)
 
     def __del__(self):
         self.close()
