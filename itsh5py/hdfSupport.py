@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 import yaml
 
-from .queueHandler import addOpenFile, isOpen
+from .queueHandler import addOpenFile, isOpen, removeFromQueue
 
 TYPEID = '_TYPE_'
 
@@ -47,9 +47,10 @@ class LazyHdfDict(UserDict):
 
     def close(self):
         """Closes the h5file if provided at initialization."""
-
         if self._h5file and hasattr(self._h5file, 'close'):
             self._h5file.close()
+
+        removeFromQueue(self._h5file.filename)
 
     def __del__(self):
         self.close()

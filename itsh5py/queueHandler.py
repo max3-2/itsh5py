@@ -16,6 +16,13 @@ def isOpen(file):
     else:
         return None
 
+def removeFromQueue(file):
+    filenames = [h.filename for h in openFiles]
+    if file in filenames:
+        handle = openFiles[filenames.index(file)]
+        openFiles.remove(handle)
+        close(handle)
+
 def close(handle):
     if hasattr(handle, 'close'):
         handle.close()
