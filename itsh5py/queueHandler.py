@@ -1,7 +1,7 @@
 from collections import deque
 
 openFiles = deque()
-maxFiles = 6
+maxFiles = 3
 
 def addOpenFile(handle):
     if len(openFiles) > maxFiles:
