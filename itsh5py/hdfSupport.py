@@ -14,7 +14,7 @@ import yaml
 from logging import getLogger
 logger = getLogger(__package__)
 
-from .queueHandler import addOpenFile, isOpen, removeFromQueue
+from .queueHandler import add_open_file, is_open, remove_from_queue
 
 TYPEID = '_TYPE_'
 
@@ -73,7 +73,7 @@ class LazyHdfDict(UserDict):
         """Closes the h5file if provided at initialization."""
         if self._h5file is not None:  # set
             if self._h5file:  # ...and open
-                removeFromQueue(self._h5file.filename)
+                remove_from_queue(self._h5file.filename)
 
     def __del__(self):
         self.close()
@@ -220,12 +220,12 @@ def load(hdf, lazy=False, unpacker=unpack_dataset):
     hdfl = h5py.File(hdf, 'r')
 
     if lazy:
-        data = isOpen(hdf)
+        data = is_open(hdf)
         if data is not None:
             return data
 
         data = LazyHdfDict(_h5file=hdfl)
-        addOpenFile(data)
+        add_open_file(data)
 
     else:
         data = {}

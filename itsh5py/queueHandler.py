@@ -2,33 +2,33 @@ from collections import deque
 from logging import getLogger
 logger = getLogger(__package__)
 
-openFiles = deque()
-maxFiles = 10
+open_files = deque()
+max_files = 10
 
-def addOpenFile(lazyDict):
+def add_open_file(lazyDict):
     """Adds a file (or better a LazyDict reference) to the queue."""
-    if len(openFiles) >= maxFiles:
-        close(openFiles.pop())
+    if len(open_files) >= max_files:
+        close(open_files.pop())
         logger.debug('Removed file from queue due to size limit')
 
-    openFiles.appendleft(lazyDict)
+    open_files.appendleft(lazyDict)
     logger.debug('Added new file to queue')
 
-def isOpen(file):
+def is_open(file):
     """Checks if a file is in the queue and thus oenened in memory."""
-    filenames = [h.h5file.filename for h in openFiles]
+    filenames = [h.h5file.filename for h in open_files]
     if file in filenames:
         logger.debug('File found in memory - returning...')
-        return openFiles[filenames.index(file)]
+        return open_files[filenames.index(file)]
     else:
         return None
 
-def removeFromQueue(file):
+def remove_from_queue(file):
     """Removes file from the queue and from memory. Only if file exists"""
-    filenames = [h.h5file.filename for h in openFiles]
+    filenames = [h.h5file.filename for h in open_files]
     if file in filenames:
-        handle = openFiles[filenames.index(file)]
-        openFiles.remove(handle)
+        handle = open_files[filenames.index(file)]
+        open_files.remove(handle)
         close(handle)
         logger.debug(f'File {file} removed from queue')
     else:
@@ -39,7 +39,7 @@ def close(lazyDict):
     if lazyDict.h5file and hasattr(lazyDict.h5file, 'close'):
         lazyDict.h5file.close()
 
-def openFilenames():
+def open_filenames():
     """Show file paths of open files"""
-    return [h.h5file.filename for h in openFiles]
+    return [h.h5file.filename for h in open_files]
 
