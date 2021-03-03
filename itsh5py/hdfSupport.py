@@ -11,6 +11,8 @@ import h5py
 import numpy as np
 import pandas as pd
 import yaml
+from logging import getLogger
+logger = getLogger(__package__)
 
 from .queueHandler import addOpenFile, isOpen, removeFromQueue
 
@@ -28,14 +30,32 @@ class LazyHdfDict(UserDict):
     """
     def __init__(self, _h5file=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._h5file = _h5file  # used to close the file on deletion.
+        self._h5file = None
+        self._h5filename = None
+        self.h5file = _h5file
 
     @property
     def h5file(self):
         return self._h5file
 
+    @h5file.setter
+    def h5file(self, handle):
+        if handle is not None:
+            self._h5file = handle
+            self._h5filename = handle.filename
+
     def __getitem__(self, key):
-        """Returns item and loads dataset if needed."""
+        """
+        Returns item and loads dataset if needed. Emergency fallback when
+        accessing a closed file (e.g. when using long file lists preloaded)
+        is included."""
+        if not self.h5file:
+            logger.warning(f'File {self._h5filename} was already closed, reopening...')
+            self.h5file = h5py.File(self._h5filename, 'r')
+            item = unpack_dataset(self.h5file[key])
+            self.close()
+            return item
+
         item = super().__getitem__(key)
         if isinstance(item, h5py.Dataset):
             item = unpack_dataset(item)
@@ -63,7 +83,6 @@ class LazyHdfDict(UserDict):
         Special Method for ipython to get key completion support.
         """
         return tuple(self.keys())
-
 
 def unpack_dataset(item):
     """Reconstruct a hdfdict dataset. Only some special unpacking for

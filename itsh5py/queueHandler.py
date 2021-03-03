@@ -1,4 +1,6 @@
 from collections import deque
+from logging import getLogger
+logger = getLogger(__package__)
 
 openFiles = deque()
 maxFiles = 3
