@@ -216,6 +216,7 @@ def load(hdf, lazy=False, unpacker=unpack_dataset):
     # Fixing windows issues
     if '\\' in hdf:
         hdf = hdf.replace('\\', '/')
+        logger.warning('Found windows style pathes, replacing separator')
     hdfl = h5py.File(hdf, 'r')
 
     if lazy:
