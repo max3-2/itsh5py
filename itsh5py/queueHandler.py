@@ -1,16 +1,21 @@
-from collections import OrderedDict
+from collections import deque
 
-openFiles = OrderedDict()
+openFiles = deque()
 maxFiles = 6
 
-def addOpenFile(file, handle):
+def addOpenFile(handle):
     if len(openFiles) > maxFiles:
-        close(openFiles.popitem(False)[0])
+        close(openFiles.pop())
 
-    openFiles[file] = handle
+    openFiles.appendleft(handle)
 
 def isOpen(file):
-    return openFiles.get(file, None)
+    filenames = [h.filename for h in openFiles]
+    if file in filenames:
+        return openFiles[filenames.index(file)]
+    else:
+        return None
 
-def close(file):
-    openFiles.pop(file).close()
+def close(handle):
+    if hasattr(handle, 'close'):
+        handle.close()
