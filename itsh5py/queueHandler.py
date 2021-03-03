@@ -38,3 +38,8 @@ def close(lazyDict):
     """Closes a LazyDict. This is a small wrapper to check if close will work."""
     if lazyDict.h5file and hasattr(lazyDict.h5file, 'close'):
         lazyDict.h5file.close()
+
+def openFilenames():
+    """Show file paths of open files"""
+    return [h.h5file.filename for h in openFiles]
+

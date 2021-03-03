@@ -4,4 +4,4 @@ name = 'itsh5py'
 __version__ = '1.0'
 
 from .hdfSupport import *
-from .queueHandler import maxFiles, openFiles
+from .queueHandler import maxFiles, openFilenames
