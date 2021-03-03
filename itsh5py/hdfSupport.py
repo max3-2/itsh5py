@@ -47,6 +47,7 @@ class LazyHdfDict(UserDict):
 
     def close(self):
         """Closes the h5file if provided at initialization."""
+
         if self._h5file and hasattr(self._h5file, 'close'):
             self._h5file.close()
 
@@ -185,7 +186,7 @@ def load(hdf, lazy=False, unpacker=unpack_dataset):
                     if lazy:
                         datadict[key] = value
                     else:
-                        value = unpacker(value)
+                        datadict[key] = unpacker(value)
 
         return datadict
 
