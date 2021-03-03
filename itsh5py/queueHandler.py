@@ -26,4 +26,3 @@ def removeFromQueue(file):
 def close(lazyDict):
     if lazyDict.h5file and hasattr(lazyDict.h5file, 'close'):
         lazyDict.h5file.close()
-        print('closed a file')
