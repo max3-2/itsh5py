@@ -198,9 +198,11 @@ def load(hdf, lazy=False, unpacker=unpack_dataset):
 
     if lazy:
         data = isOpen(hdf)
-        if data is None:
-            data = LazyHdfDict(_h5file=hdfl)
-            addOpenFile(hdfl)
+        if data is not None:
+            return data
+
+        data = LazyHdfDict(_h5file=hdfl)
+        addOpenFile(data)
 
     else:
         data = {}

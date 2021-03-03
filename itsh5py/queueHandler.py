@@ -3,26 +3,25 @@ from collections import deque
 openFiles = deque()
 maxFiles = 3
 
-def addOpenFile(handle):
+def addOpenFile(lazyDict):
     if len(openFiles) > maxFiles:
         close(openFiles.pop())
 
-    openFiles.appendleft(handle)
+    openFiles.appendleft(lazyDict)
 
 def isOpen(file):
-    filenames = [h.filename for h in openFiles]
+    filenames = [h._h5file.filename for h in openFiles]
     if file in filenames:
         return openFiles[filenames.index(file)]
     else:
         return None
 
 def removeFromQueue(file):
-    filenames = [h.filename for h in openFiles]
+    filenames = [h._h5file.filename for h in openFiles]
     if file in filenames:
         handle = openFiles[filenames.index(file)]
         openFiles.remove(handle)
         close(handle)
 
-def close(handle):
-    if hasattr(handle, 'close'):
-        handle.close()
+def close(lazyDict):
+    lazyDict.close()
