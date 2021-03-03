@@ -51,8 +51,9 @@ class LazyHdfDict(UserDict):
 
     def close(self):
         """Closes the h5file if provided at initialization."""
-        if self._h5file is not None:
-            removeFromQueue(self._h5file.filename)
+        if self._h5file is not None:  # set
+            if self._h5file:  # ...and open
+                removeFromQueue(self._h5file.filename)
 
     def __del__(self):
         self.close()

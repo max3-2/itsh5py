@@ -4,7 +4,7 @@ openFiles = deque()
 maxFiles = 3
 
 def addOpenFile(lazyDict):
-    if len(openFiles) > maxFiles:
+    if len(openFiles) >= maxFiles:
         close(openFiles.pop())
 
     openFiles.appendleft(lazyDict)
@@ -26,3 +26,4 @@ def removeFromQueue(file):
 def close(lazyDict):
     if lazyDict.h5file and hasattr(lazyDict.h5file, 'close'):
         lazyDict.h5file.close()
+        print('closed a file')
