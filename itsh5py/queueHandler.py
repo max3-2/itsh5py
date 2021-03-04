@@ -18,7 +18,7 @@ def is_open(file):
     """Checks if a file is in the queue and thus oenened in memory."""
     filenames = [h.h5file.filename for h in open_files]
     if file in filenames:
-        logger.debug('File found in memory - returning...')
+        logger.debug(f'File {file} found in memory - returning...')
         return open_files[filenames.index(file)]
     else:
         return None

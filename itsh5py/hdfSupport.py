@@ -4,6 +4,7 @@ Currently, deepdish is still used due to dependecy issues with old files,
 however it will be deprecated in future releases
 """
 import warnings
+import traceback
 from collections import UserDict
 from datetime import datetime
 import h5py
@@ -27,11 +28,12 @@ class LazyHdfDict(UserDict):
     h5file:
         h5py File object.
     """
-    def __init__(self, _h5file=None, *args, **kwargs):
+    def __init__(self, _h5file=None, group='/', *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._h5file = None
         self._h5filename = None
         self.h5file = _h5file
+        self.group = group
 
     @property
     def h5file(self):
@@ -44,22 +46,45 @@ class LazyHdfDict(UserDict):
             self._h5filename = handle.filename
             logger.debug(f'Added handle and file to LazyDict: {handle}::{handle.filename}')
 
+    @property
+    def group(self):
+        return self._group
+
+    @group.setter
+    def group(self, group):
+        self._group = group
+
     def __getitem__(self, key):
         """
         Returns item and loads dataset if needed. Emergency fallback when
         accessing a closed file (e.g. when using long file lists preloaded)
         is included."""
+        # logger.debug(f'Accessing key: {key}')  # TOO much
         if not self.h5file:
-            logger.warning(f'File {self._h5filename} was already closed, reopening...')
+            logger.debug(f'!!File {self._h5filename} was already closed, reopening...!!')
             self.h5file = h5py.File(self._h5filename, 'r')
-            item = unpack_dataset(self.h5file[key])
-            self.close()
-            return item
 
-        item = super().__getitem__(key)
-        if isinstance(item, h5py.Dataset):
-            item = unpack_dataset(item)
-            self.__setitem__(key, item)
+            sub = self.h5file
+            if self._group != '/':
+                for level in [g for g in self._group.split('/') if g != '']:
+                    logger.debug(f'Access to subgroup iter.: {level}')
+                    sub = sub[level]
+                item = unpack_dataset(sub[key])
+            else:
+                item = unpack_dataset(self.h5file[key])
+
+            self.h5file.close()
+
+        else:
+            item = super().__getitem__(key)
+            if isinstance(item, h5py.Dataset):
+                try:
+                    item = unpack_dataset(item)
+                    self.__setitem__(key, item)
+                except ValueError:
+                    logger.error(f'Error reading {key} from {self.group} in {self.h5file}')
+                    traceback.print_exc()
+
         return item
 
     def unlazy(self):
@@ -73,10 +98,14 @@ class LazyHdfDict(UserDict):
         """Closes the h5file if provided at initialization."""
         if self._h5file is not None:  # set
             if self._h5file:  # ...and open
-                remove_from_queue(self._h5file.filename)
+                if self._group == '/':  # Only if this is a root file...
+                    remove_from_queue(self._h5file.filename)
 
     def __del__(self):
-        self.close()
+        try:
+            self.close()
+        except ImportError:  # this can happen on ipython crtl+D
+            ...
 
     def _ipython_key_completions_(self):
         """Returns a tuple of keys.
@@ -201,13 +230,17 @@ def load(hdf, lazy=False, unpacker=unpack_dataset):
                 elif isinstance(value, h5py.Group) or isinstance(value, LazyHdfDict):
                     if lazy:
                         datadict[key] = LazyHdfDict()
-                        if isinstance(hdfobject, h5py.Group):
-                            logger.debug('LazyDict ob Group - searching parent...')
-                            datadict[key].h5file = hdfobject.file
+                        if isinstance(value, h5py.Group):
+                            logger.debug('LazyDict from Group - searching parent...')
+                            datadict[key].h5file = value.file
+                            datadict[key].group = value.name
+                            logger.debug(
+                                f'Created child LazyDict of Group {datadict[key].group} in File {datadict[key].h5file}')
                         else:
                             datadict[key].h5file = hdfobject
                     else:
                         datadict[key] = {}
+
                     datadict[key] = _recurse(value, datadict[key])
 
                 elif isinstance(value, h5py.Dataset):
