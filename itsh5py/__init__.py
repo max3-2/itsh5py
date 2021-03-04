@@ -14,7 +14,7 @@ _formatter = logging.Formatter(
 
 _stream_handler = logging.StreamHandler()
 _stream_handler.setFormatter(_formatter)
-_stream_handler.setLevel(logging.DEBUG)
+_stream_handler.setLevel(logging.INFO)
 logger.addHandler(_stream_handler)
 
 from .hdfSupport import *
