@@ -174,7 +174,7 @@ def unpack_dataset(item):
 
     return value
 
-def load(hdf, lazy=False, unpacker=unpack_dataset):
+def load(hdf, lazy=True, unpacker=unpack_dataset):
     """Returns a dictionary containing the groups as keys and the datasets as
     values from given hdf file.
 
