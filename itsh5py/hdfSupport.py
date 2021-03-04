@@ -42,6 +42,7 @@ class LazyHdfDict(UserDict):
         if handle is not None:
             self._h5file = handle
             self._h5filename = handle.filename
+            logger.debug(f'Added handle and file to LazyDict: {handle}::{handle.filename}')
 
     def __getitem__(self, key):
         """
@@ -200,6 +201,11 @@ def load(hdf, lazy=False, unpacker=unpack_dataset):
                 elif isinstance(value, h5py.Group) or isinstance(value, LazyHdfDict):
                     if lazy:
                         datadict[key] = LazyHdfDict()
+                        if isinstance(hdfobject, h5py.Group):
+                            logger.debug('LazyDict ob Group - searching parent...')
+                            datadict[key].h5file = hdfobject.file
+                        else:
+                            datadict[key].h5file = hdfobject
                     else:
                         datadict[key] = {}
                     datadict[key] = _recurse(value, datadict[key])
@@ -215,14 +221,18 @@ def load(hdf, lazy=False, unpacker=unpack_dataset):
     # Fixing windows issues
     if '\\' in hdf:
         hdf = hdf.replace('\\', '/')
-        logger.warning('Found windows style pathes, replacing separator')
-    hdfl = h5py.File(hdf, 'r')
+        logger.warning('Found windows style paths, replacing separator')
 
+    # First check if lazy and file is already loaded
     if lazy:
         data = is_open(hdf)
         if data is not None:
             return data
 
+    # Else open the file and go on
+    hdfl = h5py.File(hdf, 'r')
+
+    if lazy:
         data = LazyHdfDict(_h5file=hdfl)
         add_open_file(data)
 
