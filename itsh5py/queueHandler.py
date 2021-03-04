@@ -3,7 +3,7 @@ from logging import getLogger
 logger = getLogger(__package__)
 
 open_files = deque()
-max_files = 10
+max_files = 12
 
 def add_open_file(lazyDict):
     """Adds a file (or better a LazyDict reference) to the queue."""
