@@ -12,7 +12,7 @@ def add_open_file(lazyDict):
         logger.debug('Removed file from queue due to size limit')
 
     open_files.appendleft(lazyDict)
-    logger.debug('Added new file to queue')
+    logger.debug(f'Added new file to queue: {lazyDict.h5file.filename}')
 
 def is_open(file):
     """Checks if a file is in the queue and thus oenened in memory."""
