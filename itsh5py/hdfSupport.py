@@ -6,7 +6,6 @@ however it will be deprecated in future releases
 import warnings
 from collections import UserDict
 from datetime import datetime
-from contextlib import contextmanager
 import h5py
 import numpy as np
 import pandas as pd
