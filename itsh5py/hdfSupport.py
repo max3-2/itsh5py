@@ -61,6 +61,11 @@ class LazyHdfDict(UserDict):
         is included."""
         # logger.debug(f'Accessing key: {key}')  # TOO much
         if not self.h5file:
+            # Check if this was unwrapped anyway...catching tuples etc.
+            item = super().__getitem__(key)
+            if not isinstance(item, h5py.Dataset):
+                return item
+
             logger.debug(f'!!File {self._h5filename} was already closed, reopening...!!')
             self.h5file = h5py.File(self._h5filename, 'r')
 

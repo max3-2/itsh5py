@@ -1,4 +1,5 @@
 from collections import deque
+import atexit
 from logging import getLogger
 logger = getLogger(__package__)
 
@@ -43,3 +44,7 @@ def open_filenames():
     """Show file paths of open files"""
     return [h.h5file.filename for h in open_files]
 
+@atexit.register
+def cleanup():
+    for lzd in open_files:
+        close(lzd)
