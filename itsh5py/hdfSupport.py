@@ -87,8 +87,7 @@ class LazyHdfDict(UserDict):
                     item = unpack_dataset(item)
                     self.__setitem__(key, item)
                 except ValueError:
-                    logger.error(f'Error reading {key} from {self.group} in {self.h5file}')
-                    traceback.print_exc()
+                    logger.exception(f'Error reading {key} from {self.group} in {self.h5file}')
 
         return item
 
@@ -259,7 +258,7 @@ def load(hdf, lazy=True, unpacker=unpack_dataset):
     # Fixing windows issues
     if '\\' in hdf:
         hdf = hdf.replace('\\', '/')
-        logger.warning('Found windows style paths, replacing separator')
+        logger.debug('Found windows style paths, replacing separator')
 
     # First check if lazy and file is already loaded
     if lazy:
