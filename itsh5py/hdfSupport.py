@@ -150,14 +150,15 @@ def unpack_dataset(item):
         elif item.attrs[TYPEID] == 'tuple':
             value = 0
 
-        elif item.attrs[TYPEID] == 'strArray':
-            value = item[()]
+        elif item.attrs[TYPEID] == 'strlist':
             try:
-                value = yaml.safe_load(value.decode())
-            except AttributeError:  # already decoded string
-                value = yaml.safe_load(value)
-            value = np.array(value)
-
+                value = [it.decode() for it in item[()]]
+            except UnicodeDecodeError:
+                try:
+                    value = [it.decode('latin-1') for it in item[()]]
+                except UnicodeDecodeError:
+                    logger.exception(f'Cant decode bytes in {item.name}')
+                    value = None
         else:
             raise RuntimeError('Invalid TYPEID in h5 database')
 
@@ -330,8 +331,8 @@ def pack_dataset(hdfobject, key, value, compress):
             subset = group.create_dataset(
                 name=name, data=array)
 
-        if np.issubdtype(array.dtype, str) or array.dtype.str.startswith('<U'):
-            logger.debug(f'Numpy str array found for {name}, adding type hint to unwrap as list')
+        if np.issubdtype(array.dtype, bytes) or array.dtype.str.startswith('|S'):
+            logger.debug(f'Numpy binary (str?) array found for {name}, adding type hint to unwrap as list')
             subset.attrs.create(
                 name=TYPEID,
                 data=str('strlist'))
@@ -391,9 +392,9 @@ def pack_dataset(hdfobject, key, value, compress):
 
             # List of (np) string
             elif all([isinstance(v, (str, np.str_)) for v in value]):
-                value = np.array([str(v) for v in value], dtype=np.str_)
-                logger.warning('List of strings will be binarized as array, adding type '
-                               f'attribute for later decompression for {key}...')
+                value = np.array([str(v).encode() for v in value])
+                logger.debug('List of strings will be binarized as array, adding type '
+                             f'attribute for later decompression for {key}...')
 
             # List of numpy arrays (changing shape possible)
             elif all([isinstance(v, np.ndarray) for v in value]):
