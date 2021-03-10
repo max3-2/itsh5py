@@ -522,6 +522,12 @@ def dump(hdf, data, compress=(True, 4), packer=pack_dataset, *args, **kwargs):
             _ = data.pop(k)
 
     with h5py.File(hdf, fileMode, *args, **kwargs) as hdfl:
+        # handle manually loaded atts
+        if 'attrs' in data:
+            for k, v in data['attrs'].items():
+                hdfl.attrs[k] = v
+            _ = data.pop('attrs')
+
         _recurse(data, hdfl)
 
     return hdf
