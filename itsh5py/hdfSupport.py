@@ -412,8 +412,7 @@ def pack_dataset(hdfobject, key, value, compress):
                 else:
                     logger.debug('No compression for unknown type...')
 
-            else:
-                ds = hdfobject.create_dataset(name=key, data=value)
+            ds = hdfobject.create_dataset(name=key, data=value)
 
         if isdt:
             ds.attrs.create(
