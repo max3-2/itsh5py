@@ -3,7 +3,6 @@ Functions to handle h5 save and load with all types present in python.
 Currently, deepdish is still used due to dependecy issues with old files,
 however it will be deprecated in future releases
 """
-import warnings
 import traceback
 from collections import UserDict
 from datetime import datetime
@@ -169,7 +168,7 @@ def unpack_dataset(item):
             try:
                 value = item.asstr()[()]
             except Exception as e:
-                warning.warn(f'Converting bytes to str failed: {e}', RuntimeWarning)
+                logger.warning(f'Converting bytes to str failed: {e}')
                 value = item[()]
 
     return value
@@ -313,10 +312,6 @@ def pack_dataset(hdfobject, key, value, compress):
         Data value
     compress: `tuple`
         Tuple of (bool compress, 0-9 level) which specifies the compression.
-
-    Raises
-    -------
-    RuntimeWarning: If yaml has to be used to serialize.
     """
     def _dumpArray(name, array, group, compress):
         if len(array) == 0:
@@ -441,10 +436,9 @@ def pack_dataset(hdfobject, key, value, compress):
                     name=TYPEID,
                     data=str("yaml"))
             except yaml.representer.RepresenterError:
-                warnings.warn('Cannot dump {:s} to h5, incompatible data format '
-                              'even when using serialization.'.format(
-                    key
-                ), UserWarning)
+                logger.error(
+                    'Cannot dump {:s} to h5, incompatible data format '
+                    'even when using serialization.'.format(key))
                 logger.exception('EXP')
                 logger.error(50*'-')
 
@@ -486,7 +480,7 @@ def dump(hdf, data, compress=(True, 4), packer=pack_dataset, *args, **kwargs):
                 _recurse(value, hdfgroup)
             else:
                 if isinstance(value, (pd.DataFrame, pd.Series)):
-                    warnings.warn('Currently, pandas must be stored in root', UserWarning)
+                    logger.warning('Currently, pandas must be stored in root')
                 else:
                     packer(hdfobject, key, value, compress)
 
