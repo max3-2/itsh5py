@@ -150,21 +150,22 @@ def unpack_dataset(item):
         elif item.attrs[TYPEID] == 'tuple':
             value = 0
 
-        elif item.attrs[TYPEID] == 'strArray':
-            value = item[()]
+        elif item.attrs[TYPEID] == 'strlist':
             try:
-                value = yaml.safe_load(value.decode())
-            except AttributeError:  # already decoded string
-                value = yaml.safe_load(value)
-            value = np.array(value)
-
+                value = [it.decode() for it in item[()]]
+            except UnicodeDecodeError:
+                try:
+                    value = [it.decode('latin-1') for it in item[()]]
+                except UnicodeDecodeError:
+                    logger.exception(f'Cant decode bytes in {item.name}')
+                    value = None
         else:
             raise RuntimeError('Invalid TYPEID in h5 database')
 
     else:
         value = item[()]
         if isinstance(value, bytes):
-            # This is most likely a str...
+            # This is most likely a str...trying to decode that right away
             try:
                 value = item.asstr()[()]
             except Exception as e:
@@ -321,33 +322,20 @@ def pack_dataset(hdfobject, key, value, compress):
         if len(array) == 0:
             return
 
-        if isinstance(array[0], (str, np.str_, np.str)):
-            # String array, convert to list
-            array = list(array)
-            try:
-                subset = group.create_dataset(
-                    name=name,
-                    data=yaml.safe_dump(array)
-                )
-            except yaml.YAMLError:
-                warnings.warn('Trying to represent string array, there seems to '
-                              'be a converion issue..', RuntimeWarning)
-                subset = group.create_dataset(
-                    name=name,
-                    data=yaml.safe_dump(array.astype(np.str))
-                )
+        logger.debug(f'Dumping array {name} to file')
+        if compress[0]:
+            subset = group.create_dataset(
+                name=name, data=array, compression='gzip',
+                compression_opts=compress[1])
+        else:
+            subset = group.create_dataset(
+                name=name, data=array)
+
+        if np.issubdtype(array.dtype, bytes) or array.dtype.str.startswith('|S'):
+            logger.debug(f'Numpy binary (str?) array found for {name}, adding type hint to unwrap as list')
             subset.attrs.create(
                 name=TYPEID,
-                data=str("strArray"))
-
-        else:
-            if compress[0]:
-                group.create_dataset(
-                    name=name, data=array, compression='gzip',
-                    compression_opts=compress[1])
-            else:
-                group.create_dataset(
-                    name=name, data=array)
+                data=str('strlist'))
 
     def _iterateIterData(hdfobject, key, value, typeID):
         ds = hdfobject.create_group(key)
@@ -366,13 +354,15 @@ def pack_dataset(hdfobject, key, value, compress):
                 if isinstance(v, np.ndarray):
                     _dumpArray(fmt.format(i), v, ds, compress)
                 else:
-                    if isinstance(v, np.str_) or isinstance(v, np.str):
+                    if isinstance(v, np.str_):
                         v = str(v)
                     ds.create_dataset(name=fmt.format(i), data=v)
 
         ds.attrs.create(
             name=TYPEID,
             data=str(typeID))
+
+    logger.debug(f'Packing {key}, with type {type(value)}')
 
     isdt = None
     if isinstance(value, datetime):
@@ -389,45 +379,51 @@ def pack_dataset(hdfobject, key, value, compress):
             _iterateIterData(hdfobject, key, value, "tuple")
             return
 
-        # Catching list of strings or list of np.str or mixed lists..
+        # Catching list of strings or list of np.str_ or mixed lists..
         if isinstance(value, list):
             # check if all float or all int, then its ok to pass on
             if all([isinstance(v, (int, float)) for v in value]):
                 value = np.array(value)
+
             # check for mixed type, if yes, dump to group same as tuple
             elif not all([type(v) == type(value[0]) for v in value]):
                 _iterateIterData(hdfobject, key, value, "list")
                 return
-            # List of np string
-            elif isinstance(value[0], (np.str_, np.str)):
-                value = [str(v) for v in value]
+
+            # List of (np) string
+            elif all([isinstance(v, (str, np.str_)) for v in value]):
+                value = np.array([str(v).encode() for v in value])
+                logger.debug('List of strings will be binarized as array, adding type '
+                             f'attribute for later decompression for {key}...')
+
             # List of numpy arrays (changing shape possible)
             elif all([isinstance(v, np.ndarray) for v in value]):
                 _iterateIterData(hdfobject, key, value, "list")
                 return
 
-        if compress[0]:
-            if isinstance(value, np.ndarray):
-                _dumpArray(key, value, hdfobject, compress)
-
-            elif isdt:
-                # warnings.warn('No compression for datetime...', RuntimeWarning)
-                ds = hdfobject.create_dataset(name=key, data=value)
-            else:
-                # warnings.warn('No compression for unknown type...', RuntimeWarning)
-                ds = hdfobject.create_dataset(name=key, data=value)
+        logger.debug(f'Trying to save {key} with type {type(value)}')
+        if isinstance(value, np.ndarray):
+            _dumpArray(key, value, hdfobject, compress)
 
         else:
-            ds = hdfobject.create_dataset(name=key, data=value)
-            if isdt:
-                ds.attrs.create(
-                    name=TYPEID,
-                    data=str("datetime"))
+            if compress[0]:
+                if isdt:
+                    logger.debug('No compression for datetime...')
+                else:
+                    logger.debug('No compression for unknown type...')
+
+            else:
+                ds = hdfobject.create_dataset(name=key, data=value)
+
+        if isdt:
+            ds.attrs.create(
+                name=TYPEID,
+                data=str("datetime"))
 
     except TypeError:
         # Typecast to def. string for yaml. If it was a string, no action
         # needed but to dump it
-        if isinstance(value, np.str_) or isinstance(value, np.str):
+        if isinstance(value, np.str_) or isinstance(value, str):
             value = str(value)
             ds = hdfobject.create_dataset(
                 name=key,
@@ -450,6 +446,8 @@ def pack_dataset(hdfobject, key, value, compress):
                               'even when using serialization.'.format(
                     key
                 ), UserWarning)
+                logger.exception('EXP')
+                logger.error(50*'-')
 
 
 def dump(hdf, data, compress=(True, 4), packer=pack_dataset, *args, **kwargs):
