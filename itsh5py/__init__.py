@@ -17,5 +17,9 @@ __version__ = '1.0'
 # _stream_handler.setLevel(logging.INFO)
 # logger.addHandler(_stream_handler)
 
-from .hdfSupport import *
-from .queueHandler import max_files, open_filenames
+# This protects the setup routine
+try:
+    from .hdfSupport import *
+    from .queueHandler import max_files, open_filenames
+except ModuleNotFoundError:
+    ...
