@@ -158,6 +158,16 @@ def unpack_dataset(item):
                 except UnicodeDecodeError:
                     logger.exception(f'Cant decode bytes in {item.name}')
                     value = None
+
+        elif item.attrs[TYPEID] == 'strArray':
+            logger.warning('The strArray typeID is deprecated!')
+            value = item[()]
+            try:
+                value = yaml.safe_load(value.decode())
+            except AttributeError:  # already decoded string
+                value = yaml.safe_load(value)
+            value = np.array(value)
+
         else:
             raise RuntimeError('Invalid TYPEID in h5 database')
 
