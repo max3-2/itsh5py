@@ -467,6 +467,7 @@ def pack_dataset(hdfobject, key, value, compress):
                     'even when using serialization.'.format(key))
                 logger.exception('EXP')
                 logger.error(50*'-')
+                raise RuntimeError(f'Cant save {key}')
 
 
 def dump(hdf, data, compress=(True, 4), packer=pack_dataset, *args, **kwargs):
