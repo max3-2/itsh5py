@@ -385,7 +385,7 @@ def pack_dataset(hdfobject, key, value, compress):
 
     logger.debug(f'Packing {key}, with type {type(value)}')
 
-    isdt = None
+    isdt = False
     if isinstance(value, datetime):
         value = value.timestamp()
         isdt = True
@@ -425,6 +425,7 @@ def pack_dataset(hdfobject, key, value, compress):
         logger.debug(f'Trying to save {key} with type {type(value)}')
         if isinstance(value, np.ndarray):
             _dumpArray(key, value, hdfobject, compress)
+            isdt = False
 
         else:
             if compress[0]:
