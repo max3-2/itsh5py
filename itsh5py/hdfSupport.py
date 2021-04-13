@@ -237,8 +237,12 @@ def load(hdf, lazy=True, unpacker=unpack_dataset):
     def _recurse(hdfobject, datadict):
         for key, value in hdfobject.items():
             if 'pandas_type' in value.attrs:
-                # This is a dataframe or a series...
-                datadict[key] = pd.read_hdf(hdfobject.filename, key)
+                # This is a dataframe or a series...might be in subgroup
+                if isinstance(hdfobject, h5py.File):
+                    datadict[key] = pd.read_hdf(hdfobject.filename, key)
+                else:
+                    datadict[key] = pd.read_hdf(hdfobject.file.filename,
+                                                f'{hdfobject.name}/{key}')
             else:
                 if TYPEID in value.attrs:
                     if value.attrs[TYPEID] == 'tuple':
