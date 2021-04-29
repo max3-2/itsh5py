@@ -3,6 +3,7 @@ Functions to handle h5 save and load with all types present in python.
 Currently, deepdish is still used due to dependecy issues with old files,
 however it will be deprecated in future releases
 """
+import os
 import traceback
 from collections import UserDict
 from datetime import datetime
@@ -16,6 +17,65 @@ logger = getLogger(__package__)
 from .queueHandler import add_open_file, is_open, remove_from_queue
 
 TYPEID = '_TYPE_'
+
+def tree(hdf, levels=[], max_depth=None, buffer=None, printout=True):
+    """
+    Displays the hdf tree for lazy dicts.
+
+    This function displays a representation of the hdf file tree without
+    loading the actual datasets
+    """
+    if max_depth and len(levels) > max_depth:
+        return
+    markers = ''.join('   ' if last else '│  ' for last in levels[:-1])
+    markers += '' if not levels else '└─ ' if levels[-1] else '├─ '
+
+    if buffer is None:
+        buffer = ''
+
+    if isinstance(hdf, h5py.File):
+        msg = f'{markers}{os.path.basename(hdf.filename)}'
+        if printout:
+            print(msg)
+        buffer += msg + '\n'
+
+        children = hdf.keys()
+        last = len(children) - 1
+        for (index, child) in enumerate(children):
+            buffer = tree(
+                hdf[child], levels + [index == last], max_depth, buffer=buffer,
+                printout=printout)
+
+    elif isinstance(hdf, h5py.Group):
+        msg = f'{markers}Group {hdf.name}'
+        if printout:
+            print(msg)
+        buffer += msg + '\n'
+
+        children = hdf.keys()
+        last = len(children) - 1
+        for (index, child) in enumerate(children):
+            buffer = tree(hdf[child], levels + [index == last], max_depth, buffer=buffer,
+                          printout=printout)
+
+    elif isinstance(hdf, h5py.Dataset):
+        if hdf.ndim == 0 and TYPEID not in hdf.attrs:
+            msg = f'{markers}{hdf.name}::{hdf[()]}'
+        else:
+            msg = f'{markers}{hdf.name}::{hdf.shape}'
+
+        if TYPEID in hdf.attrs:
+            msg += f' (py-type: {hdf.attrs[TYPEID]})'
+
+        if printout:
+            print(msg)
+        buffer += msg + '\n'
+
+    else:
+        ...
+
+    return buffer
+
 
 class LazyHdfDict(UserDict):
     """Helps loading data only if values from the dict are requested. This is
@@ -33,6 +93,13 @@ class LazyHdfDict(UserDict):
         self._h5filename = None
         self.h5file = _h5file
         self.group = group
+
+    def __str__(self):
+        return self.__repr__()
+
+    def __repr__(self):
+        buffer = tree(self.h5file, printout=False)
+        return buffer
 
     @property
     def h5file(self):
@@ -559,4 +626,4 @@ def dump(hdf, data, compress=(True, 4), packer=pack_dataset, *args, **kwargs):
     return hdf
 
 
-__all__ = ['dump', 'load', 'LazyHdfDict']
+__all__ = ['dump', 'load', 'LazyHdfDict', 'tree']
