@@ -260,7 +260,7 @@ def unpack_dataset(item):
 
     return value
 
-def load(hdf, lazy=True, unpacker=unpack_dataset):
+def load(hdf, lazy=True, unpack_attrs=False, unpacker=unpack_dataset):
     """Returns a dictionary containing the groups as keys and the datasets as
     values from given hdf file.
 
@@ -268,9 +268,12 @@ def load(hdf, lazy=True, unpacker=unpack_dataset):
     ----------
     hdf: `string`, `h5py.File()`, `h5py.Group()`
         (path to file) or h5 types
-    lazy: `bool`
+    lazy: `bool`, optional
         If True, the datasets are lazy loaded at the moment an item is
         requested. Defaults to False, future releases planned with True.
+    unpack_attrs : `bool`, optional
+        If True attrs from h5 file will be unpacked and are available as dict
+        key attrs, no matter if lazy or not. Defaults to False.
     unpacker : `callable`
         Unpack function gets `value` of type h5py.Dataset.
         Must return the data you would like to have it in the returned dict.
@@ -279,7 +282,7 @@ def load(hdf, lazy=True, unpacker=unpack_dataset):
     -------
     result : `dict`
         The dictionary containing all groupnames as keys and datasets as
-        values.
+        values. Can be lazy and thus not unwrapped.
     """
     def _recurseIterData(value, isTuple=False):
         dl = list()
@@ -369,7 +372,8 @@ def load(hdf, lazy=True, unpacker=unpack_dataset):
 
     # Attributes are loaded into a dict so this does not explode in complexity
     # Unwrap them on the way
-    data['attrs'] = {k: v for k, v in hdfl.attrs.items()}
+    if unpack_attrs:
+        data['attrs'] = {k: v for k, v in hdfl.attrs.items()}
 
     # Finally, add the rest from the file. If not lazy, close it right away.
     # If lazy, the file must stay open.
