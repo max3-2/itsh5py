@@ -1,7 +1,6 @@
-"""Package stup file for podbox
+"""Package setup file for itsh5py
 """
 import sys
-import glob
 import setuptools
 from itsh5py import __version__
 
@@ -16,7 +15,6 @@ if (V[0] >= 3 and V[:2] < (3, 6)):
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
-
 
 setuptools.setup(
     name='itsh5py',
