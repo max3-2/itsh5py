@@ -20,7 +20,7 @@ types that either **won't be saved** or possibly **break your file**. No
 warranty is given.
 
 The original idea was taken from [SiggiGue](https://github.com/SiggiGue/hdfdict)
-thus there are some obvious similarities. I have extended the functionality to
-handle most of the pythonic data types.
+thus there are some obvious similarities. This package extends the
+functionality to handle most of the pythonic data types.
 
 Find the [Full documentation here](https://www.google.com)
