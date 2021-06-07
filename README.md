@@ -19,8 +19,8 @@ Since this module is most likely used for data storage, please be warned that
 types that either **won't be saved** or possibly **break your file**. No
 warranty is given.
 
-The original idea was taken from [SiggiGue]: https://github.com/SiggiGue/hdfdict
+The original idea was taken from [SiggiGue](https://github.com/SiggiGue/hdfdict)
 thus there are some obvious similarities. I have extended the functionality to
 handle most of the pythonic data types.
 
-[docs]: https://www.google.com
+Find the [Full documentation here](https://www.google.com)
