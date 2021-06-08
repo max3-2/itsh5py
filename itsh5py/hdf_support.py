@@ -397,10 +397,10 @@ def load(hdf, lazy=use_lazy, unpack_attrs=False, unpacker=unpack_dataset):
             return data
 
     # Else open the file and go on
-    hdfl = h5py.File(hdf, 'r')
+    hdf_handle = h5py.File(hdf, 'r')
 
     if lazy:
-        data = LazyHdfDict(_h5file=hdfl)
+        data = LazyHdfDict(_h5file=hdf_handle)
         add_open_file(data)
 
     else:
@@ -409,16 +409,16 @@ def load(hdf, lazy=use_lazy, unpack_attrs=False, unpacker=unpack_dataset):
     # Attributes are loaded into a dict if asked for. Else they will remain
     # in the h5file
     if unpack_attrs:
-        data['attrs'] = {k: v for k, v in hdfl.attrs.items()}
+        data['attrs'] = {k: v for k, v in hdf_handle.attrs.items()}
 
     # Finally, add the rest from the file. If not lazy, close it right away.
     # If lazy, the file must stay open.
-    data = _recurse(hdfl, data)
+    data = _recurse(hdf_handle, data)
 
     if lazy:
         return data
 
-    hdfl.close()
+    hdf_handle.close()
 
     # squeeze singleton data from dict
     if len(data.keys()) == 1:
@@ -663,14 +663,14 @@ def save(hdf, data, compress=default_compression, packer=pack_dataset, *args, **
     for k in pandas_keys:
         _ = data.pop(k)
 
-    with h5py.File(hdf, file_mode, *args, **kwargs) as hdfl:
+    with h5py.File(hdf, file_mode, *args, **kwargs) as hdf_handle:
         # Handle manual attrs setup
         if 'attrs' in data:
             for k, v in data['attrs'].items():
-                hdfl.attrs[k] = v
+                hdf_handle.attrs[k] = v
             _ = data.pop('attrs')
 
         # Finally save the data
-        _recurse(data, hdfl)
+        _recurse(data, hdf_handle)
 
     return hdf
