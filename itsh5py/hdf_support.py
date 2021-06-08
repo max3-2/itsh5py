@@ -277,6 +277,9 @@ def unpack_dataset(item):
                 value = yaml.safe_load(value)
             value = np.array(value)
 
+        elif item.attrs[TYPEID] == 'list_arr':
+            value = list(item[()])
+
         else:
             raise RuntimeError('Invalid TYPEID in h5 database')
 
@@ -447,7 +450,7 @@ def pack_dataset(hdfobject, key, value, compress):
     compress: `tuple`
         Tuple of (bool compress, 0-9 level) which specifies the compression.
     """
-    def _dump_array(name, array, group, compress):
+    def _dump_array(name, array, group, compress, type_id=None):
         if len(array) == 0:
             return
 
@@ -471,6 +474,11 @@ def pack_dataset(hdfobject, key, value, compress):
             subset.attrs.create(
                 name=TYPEID,
                 data=str('objArray'))
+
+        elif type_id is not None:
+            subset.attrs.create(
+                name=TYPEID,
+                data=str(type_id))
 
     def _iterate_iter_data(hdfobject, key, value, typeID):
         ds = hdfobject.create_group(key)
@@ -510,6 +518,7 @@ def pack_dataset(hdfobject, key, value, compress):
             isdt = True
 
     try:
+        manual_type = None
         if isinstance(value, tuple):
             _iterate_iter_data(hdfobject, key, value, "tuple")
             return
@@ -519,6 +528,7 @@ def pack_dataset(hdfobject, key, value, compress):
             # check if all float or all int, then its ok to pass on
             if all([isinstance(v, (int, float)) for v in value]):
                 value = np.array(value)
+                manual_type = 'list_arr'
 
             # check for mixed type, if yes, dump to group same as tuple
             elif not all([isinstance(v, value[0]) for v in value]):
@@ -538,7 +548,7 @@ def pack_dataset(hdfobject, key, value, compress):
 
         logger.debug(f'Trying to save {key} with type {type(value)}')
         if isinstance(value, np.ndarray):
-            _dump_array(key, value, hdfobject, compress)
+            _dump_array(key, value, hdfobject, compress, type_id=manual_type)
             isdt = False
 
         else:
@@ -580,7 +590,6 @@ def pack_dataset(hdfobject, key, value, compress):
                 logger.error(
                     'Cannot dump {:s} to h5, incompatible data format '
                     'even when using serialization.'.format(key))
-                logger.exception('EXP')
                 logger.error(50*'-')
                 raise RuntimeError(f'Cant save {key}')
 
