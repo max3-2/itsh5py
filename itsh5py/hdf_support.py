@@ -18,7 +18,8 @@ logger = getLogger(__package__)
 
 TYPEID = '_TYPE_'
 
-def tree(hdf, levels=[], max_depth=None, buffer=None, printout=True):
+
+def _tree(hdf, levels=[], max_depth=None, buffer=None, printout=True):
     """
     Displays the hdf tree for lazy dicts.
 
@@ -42,7 +43,7 @@ def tree(hdf, levels=[], max_depth=None, buffer=None, printout=True):
         children = hdf.keys()
         last = len(children) - 1
         for (index, child) in enumerate(children):
-            buffer = tree(
+            buffer = _tree(
                 hdf[child], levels + [index == last], max_depth, buffer=buffer,
                 printout=printout)
 
@@ -55,8 +56,9 @@ def tree(hdf, levels=[], max_depth=None, buffer=None, printout=True):
         children = hdf.keys()
         last = len(children) - 1
         for (index, child) in enumerate(children):
-            buffer = tree(hdf[child], levels + [index == last], max_depth, buffer=buffer,
-                          printout=printout)
+            buffer = _tree(
+                hdf[child], levels + [index == last], max_depth, buffer=buffer,
+                printout=printout)
 
     elif isinstance(hdf, h5py.Dataset):
         if hdf.ndim == 0 and TYPEID not in hdf.attrs:
@@ -98,7 +100,7 @@ class LazyHdfDict(UserDict):
         return self.__repr__()
 
     def __repr__(self):
-        buffer = tree(self.h5file, printout=False)
+        buffer = _tree(self.h5file, printout=False)
         return buffer
 
     @property
@@ -183,6 +185,7 @@ class LazyHdfDict(UserDict):
         """
         return tuple(self.keys())
 
+
 def unpack_dataset(item):
     """Reconstruct a hdfdict dataset. Only some special unpacking for
     yaml, tuple and datetime types.
@@ -259,6 +262,7 @@ def unpack_dataset(item):
                 value = item[()]
 
     return value
+
 
 def load(hdf, lazy=True, unpack_attrs=False, unpacker=unpack_dataset):
     """Returns a dictionary containing the groups as keys and the datasets as
@@ -387,6 +391,7 @@ def load(hdf, lazy=True, unpack_attrs=False, unpacker=unpack_dataset):
         data = data[list(data.keys())[0]]
 
     return data
+
 
 def pack_dataset(hdfobject, key, value, compress):
     """Packs a given key value pair into a dataset in the given hdfobject.
@@ -630,4 +635,4 @@ def save(hdf, data, compress=(True, 4), packer=pack_dataset, *args, **kwargs):
     return hdf
 
 
-__all__ = ['save', 'load', 'LazyHdfDict', 'tree']
+# __all__ = ['save', 'load', 'LazyHdfDict', '_tree']
