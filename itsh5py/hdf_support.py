@@ -13,7 +13,8 @@ import yaml
 from logging import getLogger
 
 from .queue_handler import add_open_file, is_open, remove_from_queue
-from .config import default_suffix, use_lazy, default_compression
+from .config import (default_suffix, use_lazy, default_compression,
+                     allow_fallback_open)
 
 logger = getLogger(__package__)
 
@@ -25,7 +26,7 @@ def _tree(hdf, levels=[], max_depth=None, buffer=None, printout=True):
     Displays the hdf tree for lazy dicts.
 
     This function displays a representation of the hdf file tree without
-    loading the actual datasets
+    loading the actual datasets. Basic information is printed.
     """
     if max_depth and len(levels) > max_depth:
         return
@@ -81,9 +82,10 @@ def _tree(hdf, levels=[], max_depth=None, buffer=None, printout=True):
 
 
 class LazyHdfDict(UserDict):
-    """Helps loading data only if values from the dict are requested. This is
-    done by reimplementing the __getitem__ method from dict. Additional args
-    and kwargs are passen to the dict init.
+    """
+    Helps loading data only if values from the dict are requested. This is
+    done by reimplementing the __getitem__ method from dict. Other convenience
+    functions are added to work with the hdf files as backend.
 
     Parameters
     ------------
@@ -110,48 +112,61 @@ class LazyHdfDict(UserDict):
 
     @property
     def h5file(self):
+        """File handle of the `h5py.File()` object behind the `LazyHdfDict`."""
         return self._h5file
 
     @h5file.setter
     def h5file(self, handle):
         if handle is not None:
+            if not isinstance(handle, (h5py.File, h5py.Dataset)):
+                raise TypeError('Invalid h5file handle type')
             self._h5file = handle
             self._h5filename = handle.filename
             logger.debug(f'Added handle and file to LazyDict: {handle}::{handle.filename}')
 
     @property
     def group(self):
+        """Root group of the `LazyHdfDict`."""
         return self._group
 
     @group.setter
     def group(self, group):
-        self._group = group
+        if isinstance(group, str):
+            if group.startswith('/'):
+                self._group = group
+                return
+        logger.warning('Cant set group, must be a string that starts with a /')
 
     def __getitem__(self, key):
         """
         Returns item and loads dataset if needed. Emergency fallback when
         accessing a closed file (e.g. when using long file lists preloaded)
         is included."""
-        # logger.debug(f'Accessing key: {key}')  # TOO much
         if not self.h5file:
             # Check if this was unwrapped anyway...catching tuples etc.
             item = super().__getitem__(key)
             if not isinstance(item, h5py.Dataset):
                 return item
 
-            logger.debug(f'!!File {self._h5filename} was already closed, reopening...!!')
-            self.h5file = h5py.File(self._h5filename, 'r')
+            if allow_fallback_open:
+                logger.debug(f'File {self._h5filename} was already closed, reopening...')
+                self.h5file = h5py.File(self._h5filename, 'r')
 
-            sub = self.h5file
-            if self._group != '/':
-                for level in [g for g in self._group.split('/') if g != '']:
-                    logger.debug(f'Access to subgroup iter.: {level}')
-                    sub = sub[level]
-                item = unpack_dataset(sub[key])
+                sub = self.h5file
+                if self._group != '/':
+                    for level in [g for g in self._group.split('/') if g != '']:
+                        logger.debug(f'Access to subgroup iter.: {level}')
+                        sub = sub[level]
+                    item = unpack_dataset(sub[key])
+                else:
+                    item = unpack_dataset(self.h5file[key])
+
+                self.h5file.close()
+
             else:
-                item = unpack_dataset(self.h5file[key])
-
-            self.h5file.close()
+                logger.error('Cant access data in closed file which is not '
+                             'unwrapped.')
+                return None
 
         else:
             item = super().__getitem__(key)
@@ -165,14 +180,19 @@ class LazyHdfDict(UserDict):
         return item
 
     def unlazy(self):
-        """Unpacks all datasets. With this trick, you can call
-        dict(this_instance) then to get a real dict.
+        """Unpacks all datasets.
+
+        With this trick, you can call dict(this_instance) then to get a
+        *real* dict. The file is then closed and removed from the queue.
         """
         load(self, lazy=False)
         self.close()
 
     def close(self):
-        """Closes the h5file if provided at initialization."""
+        """Closes the h5file if provided at initialization.
+
+        Unpackig will keep on working using the fallback routine if enabled.
+        """
         if self._h5file is not None:  # set
             if self._h5file:  # ...and open
                 if self._group == '/':  # Only if this is a root file...
@@ -186,14 +206,17 @@ class LazyHdfDict(UserDict):
 
     def _ipython_key_completions_(self):
         """Returns a tuple of keys.
+
         Special Method for ipython to get key completion support.
         """
         return tuple(self.keys())
 
 
 def unpack_dataset(item):
-    """Reconstruct a hdfdict dataset. Only some special unpacking for
-    yaml, tuple and datetime types.
+    """Reconstruct a hdfdict dataset.
+
+    This holds all special **unpacking** procedures for types not natively
+    supported by `h5py`.
 
     Parameters
     ----------
@@ -269,7 +292,7 @@ def unpack_dataset(item):
     return value
 
 
-def load(hdf, lazy=True, unpack_attrs=False, unpacker=unpack_dataset):
+def load(hdf, lazy=use_lazy, unpack_attrs=False, unpacker=unpack_dataset):
     """Returns a dictionary containing the groups as keys and the datasets as
     values from given hdf file.
 
@@ -289,7 +312,7 @@ def load(hdf, lazy=True, unpack_attrs=False, unpacker=unpack_dataset):
 
     Returns
     -------
-    result : `dict`
+    result : `dict`, `LazyHdfDict`
         The dictionary containing all groupnames as keys and datasets as
         values. Can be lazy and thus not unwrapped.
     """
@@ -401,19 +424,21 @@ def load(hdf, lazy=True, unpack_attrs=False, unpacker=unpack_dataset):
 def pack_dataset(hdfobject, key, value, compress):
     """Packs a given key value pair into a dataset in the given hdfobject.
 
-    Fairly simple extra routine that checks for datetime. If a value exists
-    that is not conformable with hdfthe the function tries to serialize the
-    calue using yaml as last resort, raising a TypeWarning on the go. If yaml
-    fails, the exception of the failure is raised and not handled, thus
-    having the code fail!
+    This holds all special **packing** procedures for types not natively
+    supported by `h5py`. If a value exists that is not conformable with hdf,
+    the the function tries to adapt or serialize the value using yaml as last
+    resort, raising a TypeWarning on the go.
+    If yaml fails, the exception of the failure is raised and not handled, thus
+    having the code fail, e.g. saving is only successful if all datasets were
+    packable!
 
     Parameters
     ------------
     hdfobject: `h5py.File` or similar to save the data to.
-        The object to pack
+        The object to pack the key-value in to.
     key: `string`
         Indetifier to write the data to.
-    value:
+    value: `any`
         Data value
     compress: `tuple`
         Tuple of (bool compress, 0-9 level) which specifies the compression.
@@ -559,7 +584,8 @@ def pack_dataset(hdfobject, key, value, compress):
 def save(hdf, data, compress=default_compression, packer=pack_dataset, *args, **kwargs):
     """
     Adds keys of given dict as groups and values as datasets to the given
-    hdf-file (by string or object) or group object.
+    hdf-file (by string or object) or group object. Iterative dicts are
+    supported.
 
     Parameters
     -----------
