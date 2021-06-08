@@ -13,6 +13,7 @@ import yaml
 from logging import getLogger
 
 from .queue_handler import add_open_file, is_open, remove_from_queue
+from .config import default_suffix, use_lazy, default_compression
 
 logger = getLogger(__package__)
 
@@ -555,7 +556,7 @@ def pack_dataset(hdfobject, key, value, compress):
                 raise RuntimeError(f'Cant save {key}')
 
 
-def save(hdf, data, compress=(True, 4), packer=pack_dataset, *args, **kwargs):
+def save(hdf, data, compress=default_compression, packer=pack_dataset, *args, **kwargs):
     """
     Adds keys of given dict as groups and values as datasets to the given
     hdf-file (by string or object) or group object.
@@ -596,7 +597,7 @@ def save(hdf, data, compress=(True, 4), packer=pack_dataset, *args, **kwargs):
                 else:
                     packer(hdfobject, key, value, compress)
 
-    if not hdf.endswith('.h5'): hdf += '.h5'
+    if not hdf.endswith(default_suffix): hdf += default_suffix
 
     # Single dataframe
     if isinstance(data, (pd.DataFrame, pd.Series)):
