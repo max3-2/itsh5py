@@ -489,7 +489,7 @@ def pack_dataset(hdfobject, key, value, compress):
                 _iterate_iter_data(ds, fmt.format(i), v, "tuple")
             elif isinstance(v, list):
                 # check for mixed type, if yes, dump to group as tuple
-                if not all([isinstance(v, value[0]) for v in value]):
+                if not all([isinstance(v, type(value[0])) for v in value]):
                     _iterate_iter_data(hdfobject, key, value, "list")
                 else:
                     _iterate_iter_data(ds, fmt.format(i), v, "list")
@@ -531,7 +531,7 @@ def pack_dataset(hdfobject, key, value, compress):
                 manual_type = 'list_arr'
 
             # check for mixed type, if yes, dump to group same as tuple
-            elif not all([isinstance(v, value[0]) for v in value]):
+            elif not all([isinstance(v, type(value[0])) for v in value]):
                 _iterate_iter_data(hdfobject, key, value, "list")
                 return
 

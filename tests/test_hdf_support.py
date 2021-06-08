@@ -7,11 +7,10 @@ import unittest
 import logging
 from pathlib import Path
 import numpy as np
+from numpy.testing import assert_array_equal
 import itsh5py
 
 logger = logging.getLogger('itsh5py')
-
-
 
 
 class TestSupplementary(unittest.TestCase):
@@ -110,7 +109,9 @@ class TestIterableTypes(unittest.TestCase):
         test_data_loaded = itsh5py.load(test_file)
 
         self.assertIsInstance(test_data_loaded, dict)
-        self.assertDictEqual(test_data, test_data_loaded)
+        with self.assertRaises(ValueError):
+            self.assertDictEqual(test_data, test_data_loaded)
+        test_file.unlink()
 
 
 class TestInvalidType(unittest.TestCase):
