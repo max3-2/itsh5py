@@ -587,6 +587,10 @@ def save(hdf, data, compress=default_compression, packer=pack_dataset, *args, **
     hdf-file (by string or object) or group object. Iterative dicts are
     supported.
 
+    The dict can have the `attrs` key containing a dict of key, value pairs
+    which are added as root level attributes to the hdf file. Those must be
+    scalar, else exceptions will occur.
+
     Parameters
     -----------
     hdf: `string`, `h5py.File()`, `h5py.Group()`
@@ -637,30 +641,30 @@ def save(hdf, data, compress=default_compression, packer=pack_dataset, *args, **
 
         return hdf
 
-    # Dataframe in dict. Pandas is stored in advance...stupid file lock in pandas....
-    pandasKeys = list()
-    fileMode = 'w'
+    # Dataframe in dict. Pandas is stored in advance...stupid file lock in
+    # pandas prevents otherwise.
+    pandas_keys = list()
+    file_mode = 'w'
     for k, v in data.items():
         if isinstance(v, (pd.DataFrame, pd.Series)):
             if compress[0]:
-                v.to_hdf(hdf, key=k, mode=fileMode, compress=compress[1], complib='zlib')
+                v.to_hdf(hdf, key=k, mode=file_mode, compress=compress[1], complib='zlib')
             else:
-                v.to_hdf(hdf, key=k, mode=fileMode, compress=None)
-            pandasKeys.append(k)
-            fileMode = 'r+'
+                v.to_hdf(hdf, key=k, mode=file_mode, compress=None)
+            pandas_keys.append(k)
+            file_mode = 'r+'
 
-    if pandasKeys:
-        data = data.copy()
-        for k in pandasKeys:
-            _ = data.pop(k)
+    for k in pandas_keys:
+        _ = data.pop(k)
 
-    with h5py.File(hdf, fileMode, *args, **kwargs) as hdfl:
-        # handle manually loaded atts
+    with h5py.File(hdf, file_mode, *args, **kwargs) as hdfl:
+        # Handle manual attrs setup
         if 'attrs' in data:
             for k, v in data['attrs'].items():
                 hdfl.attrs[k] = v
             _ = data.pop('attrs')
 
+        # Finally save the data
         _recurse(data, hdfl)
 
     return hdf
