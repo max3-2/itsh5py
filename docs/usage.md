@@ -12,4 +12,6 @@ Overview documentation of the public API functions.
     save
     load
     LazyHdfDict
+    queue_handler
+    config
 ```

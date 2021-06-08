@@ -1,3 +1,8 @@
+"""
+base module to handle the queue of open (in memory) files. The main
+important settings of how many filse are allowed (`max_open_files`) and
+the currently open files are exposed in the main API.
+"""
 from collections import deque
 import atexit
 from logging import getLogger
@@ -53,5 +58,9 @@ def open_filenames():
 
 @atexit.register
 def cleanup():
+    """
+    This will be run atexit and ensures that no references persist in
+    memory and all hdf files are freed.
+    """
     for lzd in open_files:
         close(lzd)

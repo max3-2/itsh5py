@@ -11,6 +11,7 @@ extensions = [
     'sphinx.ext.autosummary',          # Create summaries automatically.
     'sphinx.ext.viewcode',             # Add links to highlighted source code.
     'sphinx.ext.mathjax',              # Render math via JavaScript.
+    'sphinx.ext.napoleon',             # numpy docstrings
 ]
 
 # Add the project folder to the module search path.
@@ -42,7 +43,7 @@ html_favicon = 'images/logo-256px.png'  # browser icon
 
 # Source parsing
 master_doc = 'index'                   # start page
-nitpicky = True                      # Warn about missing references?
+nitpicky = False                      # Warn about missing references?
 
 # Code documentation
 autodoc_default_options = {

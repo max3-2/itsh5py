@@ -86,8 +86,12 @@ class LazyHdfDict(UserDict):
 
     Parameters
     ------------
-    h5file:
-        h5py File object.
+    _h5file: 'h5py.File', optional
+        h5py File object or None
+    group: `str`, optional
+        Group to anchor the LazyHdfDict into.
+    args, kwargs:
+        Passed to the parent `UserDcit` implemented type.
     """
     def __init__(self, _h5file=None, group='/', *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -559,9 +563,9 @@ def save(hdf, data, compress=(True, 4), packer=pack_dataset, *args, **kwargs):
     Parameters
     -----------
     hdf: `string`, `h5py.File()`, `h5py.Group()`
-        (path to file) or h5 types
+        (Path to) File or h5 types as described above.
     data: `dict`
-        The dictionary containing only string or tuple keys and
+        The dictionary containing *only string or tuple* keys and
         data values or dicts as above again.
     packer: `callable`
         Callable gets `hdfobject, key, value` as input.
@@ -570,13 +574,13 @@ def save(hdf, data, compress=(True, 4), packer=pack_dataset, *args, **kwargs):
         `value` is the dataset to be packed and accepted by h5py.
         Defaults to `pack_dataset()`
     compress: `tuple`
-        Try to compress arrays, use carfully. If on, gzip mode is used in
+        Try to compress arrays, use carefully. If on, gzip mode is used in
         every case. Defaults to `(False, 0)`. When `(True,...)` the second
         element specifies the level from `0-9`, see h5py doc.
 
     Returns
     --------
-    hdf: `string`,
+    hdf: `string`
         Path to new file
     """
     def _recurse(datadict, hdfobject):
