@@ -10,5 +10,6 @@ __copyright__ = 'Max Elfner, ITS, KIT https://www.its.kit.edu'
 __license__ = 'MIT'
 
 from .hdf_support import save, load, LazyHdfDict
+dump = save  # This is an alias since the two names are used often
 from .queue_handler import max_open_files, open_files
 from . import config
