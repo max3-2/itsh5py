@@ -38,8 +38,8 @@ copyright = meta.__copyright__
 license = meta.__license__
 
 # Logo
-html_logo = 'images/logo-96px.png'  # documentation logo
-html_favicon = 'images/logo-256px.png'  # browser icon
+# html_logo = 'images/TODO.png'  # documentation logo
+# html_favicon = 'images/TODO.png'  # browser icon
 
 # Source parsing
 master_doc = 'index'                   # start page
@@ -63,6 +63,6 @@ html_show_sphinx = False           # Show Sphinx blurb in footer?
 html_theme = 'furo'           # custom theme with light and dark mode
 pygments_style = 'friendly'       # syntax highlight style in light mode
 pygments_dark_style = 'stata-dark'     # syntax highlight style in dark mode
-templates_path = ['templates']    # style template overrides
+# templates_path = ['templates']    # style template overrides
 html_static_path = ['style']        # folders to include in output
 html_css_files = ['custom.css']   # extra style files to apply
