@@ -3,7 +3,7 @@
 # Metadata
 # Meta information
 __title__ = 'itsh5py'
-__version__ = '0.8.0'
+__version__ = '0.6.0'
 __date__ = '2021–06–15'
 __author__ = 'Max Elfner'
 __copyright__ = 'Max Elfner'
