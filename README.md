@@ -1,5 +1,10 @@
 # itsh5py
 
+While there are many ways to store different data types, many of them have
+their drawbacks. Sometimes it can be practical to store arrays with
+additional (pythonic) data in a single file. While *hdf attributes* can
+support some types, many exception exists especially with pyhtonic types.
+
 This is a small implementation of recursive dict support for python to write
 and read h5 files with many different pythonic data types. Almost all types
 implemented in default python and *numpy* should be supported, even in nested

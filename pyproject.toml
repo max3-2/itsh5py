@@ -1,0 +1,36 @@
+[build-system]
+requires = ["flit_core >=2,<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.flit.metadata]
+dist-name = 'itsh5py'
+module = 'itsh5py'
+author = 'Max Elfner <maximilian.elfner@kit.edu>'
+requires = [
+      'PyYAML',
+      'pandas',
+      'numpy > 1.19',
+      'h5py > 3.0',
+    ]
+requires-python = '>=3.6'
+license = 'MIT'
+home-page = "https://git.scc.kit.edu"
+description-file = 'README.md'
+keywords = 'h5py, hdf, data storage'
+classifiers = [
+    'Development Status :: 4 - Beta',
+    'Programming Language :: Python :: 3',
+    'Operating System :: Microsoft :: Windows',
+    'Operating System :: POSIX :: Linux',
+    'Operating System :: MacOS :: MacOS X',
+    'Intended Audience :: Science/Research',
+    'Natural Language :: English',
+    'License :: OSI Approved :: MIT License'
+    ]
+
+[tool.flit.metadata.requires-extra]
+doc = ['Sphinx']
+
+[tool.flit.metadata.urls]
+Documentation = 'https://readthedocs.com'
+Source = 'https://git.scc.kit.edu'

@@ -14,7 +14,7 @@ import yaml
 from logging import getLogger
 logger = getLogger(__package__)
 
-from .queueHandler import add_open_file, is_open, remove_from_queue
+from .queue_handler import add_open_file, is_open, remove_from_queue
 
 TYPEID = '_TYPE_'
 
@@ -546,7 +546,7 @@ def pack_dataset(hdfobject, key, value, compress):
                 raise RuntimeError(f'Cant save {key}')
 
 
-def dump(hdf, data, compress=(True, 4), packer=pack_dataset, *args, **kwargs):
+def save(hdf, data, compress=(True, 4), packer=pack_dataset, *args, **kwargs):
     """
     Adds keys of given dict as groups and values as datasets to the given
     hdf-file (by string or object) or group object.
@@ -630,4 +630,4 @@ def dump(hdf, data, compress=(True, 4), packer=pack_dataset, *args, **kwargs):
     return hdf
 
 
-__all__ = ['dump', 'load', 'LazyHdfDict', 'tree']
+__all__ = ['save', 'load', 'LazyHdfDict', 'tree']
