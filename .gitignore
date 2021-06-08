@@ -22,7 +22,7 @@ __pycache__/
 .idea
 .idea/
 
-# ms visual code settings 
+# ms visual code settings
 .vscode
 
 # mac folder index
@@ -41,3 +41,5 @@ doc/_templates/
 *.egg*
 build/
 dist/
+deploy/dist
+deploy/docs

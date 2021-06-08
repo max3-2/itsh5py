@@ -29,7 +29,7 @@ classifiers = [
     ]
 
 [tool.flit.metadata.requires-extra]
-doc = ['Sphinx']
+doc = ['Sphinx', 'Furo', 'MyST-parser']
 
 [tool.flit.metadata.urls]
 Documentation = 'https://readthedocs.com'
