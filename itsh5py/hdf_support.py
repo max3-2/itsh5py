@@ -4,6 +4,8 @@ Currently, deepdish is still used due to dependecy issues with old files,
 however it will be deprecated in future releases
 """
 import os
+import platform
+from pathlib import Path, PureWindowsPath
 from collections import UserDict
 from datetime import datetime
 import h5py
@@ -298,8 +300,8 @@ def load(hdf, lazy=use_lazy, unpack_attrs=False, unpacker=unpack_dataset):
 
     Parameters
     ----------
-    hdf: `string`, `h5py.File()`, `h5py.Group()`
-        (path to file) or h5 types
+    hdf: `string, Path`
+        Path to hdf file.
     lazy: `bool`, optional
         If True, the datasets are lazy loaded at the moment an item is
         requested. Defaults to False, future releases planned with True.
@@ -381,11 +383,12 @@ def load(hdf, lazy=use_lazy, unpack_attrs=False, unpacker=unpack_dataset):
 
         return datadict
 
-    # Fixing windows issues
-    # Deprecate via pathlib
-    if '\\' in hdf:
-        hdf = hdf.replace('\\', '/')
-        logger.debug('Found windows style paths, replacing separator')
+    if isinstance(hdf, str):
+        # Fixing windows issues with manually specified pathes
+        if platform.system() == 'Windows':
+            hdf = PureWindowsPath(hdf)
+
+        hdf = Path(hdf)
 
     # First check if lazy and file is already loaded
     if lazy:
