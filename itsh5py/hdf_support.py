@@ -4,7 +4,6 @@ Currently, deepdish is still used due to dependecy issues with old files,
 however it will be deprecated in future releases
 """
 import os
-import traceback
 from collections import UserDict
 from datetime import datetime
 import h5py
@@ -12,9 +11,10 @@ import numpy as np
 import pandas as pd
 import yaml
 from logging import getLogger
-logger = getLogger(__package__)
 
 from .queue_handler import add_open_file, is_open, remove_from_queue
+
+logger = getLogger(__package__)
 
 TYPEID = '_TYPE_'
 
@@ -442,7 +442,7 @@ def pack_dataset(hdfobject, key, value, compress):
                 _iterateIterData(ds, fmt.format(i), v, "tuple")
             elif isinstance(v, list):
                 # check for mixed type, if yes, dump to group as tuple
-                if not all([type(v) == type(value[0]) for v in value]):
+                if not all([isinstance(v, value[0]) for v in value]):
                     _iterateIterData(hdfobject, key, value, "list")
                 else:
                     _iterateIterData(ds, fmt.format(i), v, "list")
@@ -482,7 +482,7 @@ def pack_dataset(hdfobject, key, value, compress):
                 value = np.array(value)
 
             # check for mixed type, if yes, dump to group same as tuple
-            elif not all([type(v) == type(value[0]) for v in value]):
+            elif not all([isinstance(v, value[0]) for v in value]):
                 _iterateIterData(hdfobject, key, value, "list")
                 return
 
