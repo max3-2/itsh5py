@@ -6,6 +6,7 @@ from sys import argv
 import unittest
 import logging
 from pathlib import Path
+import numpy as np
 import itsh5py
 
 logger = logging.getLogger('itsh5py')
@@ -86,6 +87,30 @@ class TestIterableTypes(unittest.TestCase):
         self.assertIsInstance(test_data_loaded, dict)
         self.assertDictEqual(test_data, test_data_loaded)
         test_file.unlink()
+
+    def test_mixed_iterables(self):
+        test_data = {'list_type': [1, 2., '3'],
+                     'tuple_type': (1, 2., '3'),
+                     'set_type': set([1, 2., '3']),
+                     }
+
+        test_file = itsh5py.save('test_iterables', test_data)
+        test_data_loaded = itsh5py.load(test_file)
+
+        self.assertIsInstance(test_data_loaded, dict)
+        self.assertDictEqual(test_data, test_data_loaded)
+        test_file.unlink()
+
+    def test_iterable_with_array(self):
+        test_data = {'list_type': [1, 2., '3', np.ones((10, 20))],
+                     'tuple_type': (1, 2., '3', np.ones((10, 20))),
+                     }
+
+        test_file = itsh5py.save('test_iterables_array', test_data)
+        test_data_loaded = itsh5py.load(test_file)
+
+        self.assertIsInstance(test_data_loaded, dict)
+        self.assertDictEqual(test_data, test_data_loaded)
 
 
 class TestInvalidType(unittest.TestCase):
