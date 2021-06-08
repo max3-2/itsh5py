@@ -15,8 +15,7 @@ import yaml
 from logging import getLogger
 
 from .queue_handler import add_open_file, is_open, remove_from_queue
-from .config import (default_suffix, use_lazy, default_compression,
-                     allow_fallback_open)
+from . import config
 
 logger = getLogger(__package__)
 
@@ -150,7 +149,7 @@ class LazyHdfDict(UserDict):
             if not isinstance(item, h5py.Dataset):
                 return item
 
-            if allow_fallback_open:
+            if config.allow_fallback_open:
                 logger.debug(f'File {self._h5filename} was already closed, reopening...')
                 self.h5file = h5py.File(self._h5filename, 'r')
 
@@ -294,7 +293,7 @@ def unpack_dataset(item):
     return value
 
 
-def load(hdf, lazy=use_lazy, unpack_attrs=False, unpacker=unpack_dataset):
+def load(hdf, unpack_attrs=False, unpacker=unpack_dataset):
     """Returns a dictionary containing the groups as keys and the datasets as
     values from given hdf file.
 
@@ -302,9 +301,6 @@ def load(hdf, lazy=use_lazy, unpack_attrs=False, unpacker=unpack_dataset):
     ----------
     hdf: `string, Path`
         Path to hdf file.
-    lazy: `bool`, optional
-        If True, the datasets are lazy loaded at the moment an item is
-        requested. Defaults to False, future releases planned with True.
     unpack_attrs : `bool`, optional
         If True attrs from h5 file will be unpacked and are available as dict
         key attrs, no matter if lazy or not. Defaults to False.
@@ -318,6 +314,8 @@ def load(hdf, lazy=use_lazy, unpack_attrs=False, unpacker=unpack_dataset):
         The dictionary containing all groupnames as keys and datasets as
         values. Can be lazy and thus not unwrapped.
     """
+    lazy = config.use_lazy
+
     def _recurse_iter_data(value, is_tuple=False):
         dl = list()
         for _, v in value.items():
@@ -587,7 +585,7 @@ def pack_dataset(hdfobject, key, value, compress):
                 raise RuntimeError(f'Cant save {key}')
 
 
-def save(hdf, data, compress=default_compression, packer=pack_dataset, *args, **kwargs):
+def save(hdf, data, compress=config.default_compression, packer=pack_dataset, *args, **kwargs):
     """
     Adds keys of given dict as groups and values as datasets to the given
     hdf-file (by string or object) or group object. Iterative dicts are
@@ -599,8 +597,8 @@ def save(hdf, data, compress=default_compression, packer=pack_dataset, *args, **
 
     Parameters
     -----------
-    hdf: `string`, `h5py.File()`, `h5py.Group()`
-        (Path to) File or h5 types as described above.
+    hdf: `string`, `Path`
+        Path to File
     data: `dict`
         The dictionary containing *only string or tuple* keys and
         data values or dicts as above again.
@@ -633,7 +631,15 @@ def save(hdf, data, compress=default_compression, packer=pack_dataset, *args, **
                 else:
                     packer(hdfobject, key, value, compress)
 
-    if not hdf.endswith(default_suffix): hdf += default_suffix
+    if isinstance(hdf, str):
+        # Fixing windows issues with manually specified pathes
+        if platform.system() == 'Windows':
+            hdf = PureWindowsPath(hdf)
+
+        hdf = Path(hdf)
+
+    if not hdf.suffix == config.default_suffix:
+        hdf = hdf.parent / (hdf.name + config.default_suffix)
 
     # Single dataframe
     if isinstance(data, (pd.DataFrame, pd.Series)):

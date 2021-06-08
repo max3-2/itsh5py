@@ -1,5 +1,5 @@
 """
-base module to handle the queue of open (in memory) files. The main
+Base module to handle the queue of open (in memory) files. The main
 important settings of how many filse are allowed (`max_open_files`) and
 the currently open files are exposed in the main API.
 """
