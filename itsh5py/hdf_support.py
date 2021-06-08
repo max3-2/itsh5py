@@ -406,8 +406,8 @@ def load(hdf, lazy=use_lazy, unpack_attrs=False, unpacker=unpack_dataset):
     else:
         data = {}
 
-    # Attributes are loaded into a dict so this does not explode in complexity
-    # Unwrap them on the way
+    # Attributes are loaded into a dict if asked for. Else they will remain
+    # in the h5file
     if unpack_attrs:
         data['attrs'] = {k: v for k, v in hdfl.attrs.items()}
 
