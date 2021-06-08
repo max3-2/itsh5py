@@ -316,22 +316,22 @@ def load(hdf, lazy=use_lazy, unpack_attrs=False, unpacker=unpack_dataset):
         The dictionary containing all groupnames as keys and datasets as
         values. Can be lazy and thus not unwrapped.
     """
-    def _recurseIterData(value, isTuple=False):
+    def _recurse_iter_data(value, is_tuple=False):
         dl = list()
         for _, v in value.items():
             # Tuples wont work lazy so we have to unpack them right
             # away, anything else is way to complicated
             if TYPEID in v.attrs:
                 if v.attrs[TYPEID] == 'tuple':
-                    dl.append(_recurseIterData(v, True))
+                    dl.append(_recurse_iter_data(v, True))
                 elif v.attrs[TYPEID] == 'list':
-                    dl.append(_recurseIterData(v))
+                    dl.append(_recurse_iter_data(v))
                 else:
                     dl.append(unpacker(v))
             else:
                 dl.append(unpacker(v))
 
-        if isTuple:
+        if is_tuple:
             dl = tuple(dl)
 
         return dl
@@ -348,9 +348,9 @@ def load(hdf, lazy=use_lazy, unpack_attrs=False, unpacker=unpack_dataset):
             else:
                 if TYPEID in value.attrs:
                     if value.attrs[TYPEID] == 'tuple':
-                        datadict[key] = _recurseIterData(value, True)
+                        datadict[key] = _recurse_iter_data(value, True)
                     elif value.attrs[TYPEID] == 'list':
-                        datadict[key] = _recurseIterData(value)
+                        datadict[key] = _recurse_iter_data(value)
                     else:
                         if lazy:
                             datadict[key] = value
@@ -382,6 +382,7 @@ def load(hdf, lazy=use_lazy, unpack_attrs=False, unpacker=unpack_dataset):
         return datadict
 
     # Fixing windows issues
+    # Deprecate via pathlib
     if '\\' in hdf:
         hdf = hdf.replace('\\', '/')
         logger.debug('Found windows style paths, replacing separator')
@@ -415,6 +416,8 @@ def load(hdf, lazy=use_lazy, unpack_attrs=False, unpacker=unpack_dataset):
         return data
 
     hdfl.close()
+
+    # squeeze singleton data from dict
     if len(data.keys()) == 1:
         data = data[list(data.keys())[0]]
 
@@ -443,7 +446,7 @@ def pack_dataset(hdfobject, key, value, compress):
     compress: `tuple`
         Tuple of (bool compress, 0-9 level) which specifies the compression.
     """
-    def _dumpArray(name, array, group, compress):
+    def _dump_array(name, array, group, compress):
         if len(array) == 0:
             return
 
@@ -468,22 +471,22 @@ def pack_dataset(hdfobject, key, value, compress):
                 name=TYPEID,
                 data=str('objArray'))
 
-    def _iterateIterData(hdfobject, key, value, typeID):
+    def _iterate_iter_data(hdfobject, key, value, typeID):
         ds = hdfobject.create_group(key)
         elementsOrder = int(np.floor(np.log10(len(value))) + 1)
         fmt = 'i_{:0' + str(elementsOrder) + 'd}'
         for i, v in enumerate(value):
             if isinstance(v, tuple):
-                _iterateIterData(ds, fmt.format(i), v, "tuple")
+                _iterate_iter_data(ds, fmt.format(i), v, "tuple")
             elif isinstance(v, list):
                 # check for mixed type, if yes, dump to group as tuple
                 if not all([isinstance(v, value[0]) for v in value]):
-                    _iterateIterData(hdfobject, key, value, "list")
+                    _iterate_iter_data(hdfobject, key, value, "list")
                 else:
-                    _iterateIterData(ds, fmt.format(i), v, "list")
+                    _iterate_iter_data(ds, fmt.format(i), v, "list")
             else:
                 if isinstance(v, np.ndarray):
-                    _dumpArray(fmt.format(i), v, ds, compress)
+                    _dump_array(fmt.format(i), v, ds, compress)
                 else:
                     if isinstance(v, np.str_):
                         v = str(v)
@@ -507,7 +510,7 @@ def pack_dataset(hdfobject, key, value, compress):
 
     try:
         if isinstance(value, tuple):
-            _iterateIterData(hdfobject, key, value, "tuple")
+            _iterate_iter_data(hdfobject, key, value, "tuple")
             return
 
         # Catching list of strings or list of np.str_ or mixed lists..
@@ -518,7 +521,7 @@ def pack_dataset(hdfobject, key, value, compress):
 
             # check for mixed type, if yes, dump to group same as tuple
             elif not all([isinstance(v, value[0]) for v in value]):
-                _iterateIterData(hdfobject, key, value, "list")
+                _iterate_iter_data(hdfobject, key, value, "list")
                 return
 
             # List of (np) string
@@ -529,12 +532,12 @@ def pack_dataset(hdfobject, key, value, compress):
 
             # List of numpy arrays (changing shape possible)
             elif all([isinstance(v, np.ndarray) for v in value]):
-                _iterateIterData(hdfobject, key, value, "list")
+                _iterate_iter_data(hdfobject, key, value, "list")
                 return
 
         logger.debug(f'Trying to save {key} with type {type(value)}')
         if isinstance(value, np.ndarray):
-            _dumpArray(key, value, hdfobject, compress)
+            _dump_array(key, value, hdfobject, compress)
             isdt = False
 
         else:
@@ -668,6 +671,3 @@ def save(hdf, data, compress=default_compression, packer=pack_dataset, *args, **
         _recurse(data, hdfl)
 
     return hdf
-
-
-# __all__ = ['save', 'load', 'LazyHdfDict', '_tree']
