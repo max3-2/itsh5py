@@ -1,6 +1,6 @@
 """
-Tester for the main functions handling hdf io. All test are run with and
-without compression which, in theory, should work since gzip is lossless.
+Tester for the main functions handling hdf io. All test are run with
+compression which, in theory, should work since gzip is lossless.
 """
 from sys import argv
 import unittest
@@ -18,6 +18,7 @@ class CustomValidation(object):
         assert d1.keys() == d2.keys(), "Dict mismatch in keys"
         for key, value in d1.items():
             if isinstance(value, np.ndarray):
+                assert isinstance(d2[key], np.ndarray), "Second element not an array"
                 assert_array_equal(value, d2[key], err_msg='Array mismatch')
             else:
                 assert value == d2[key], "Non-Array item mismatch"
@@ -192,7 +193,7 @@ class TestArrayTypes(unittest.TestCase, CustomValidation):
         test_data = {'int_type_1d': np.ones((10,), dtype=int),
                      'float_type_1d': np.ones((10,), dtype=float),
                      'complex_type_1d': np.ones((10,)) * (1+1j),
-                     # 'string_type_1d': np.array(['a', 'b', 'cd', 'äöü']),
+                     'string_type_1d': np.array(['a', 'b', 'cd', 'äöü']),
                      }
 
         test_file = itsh5py.save('test_array_1d', test_data)
@@ -203,12 +204,12 @@ class TestArrayTypes(unittest.TestCase, CustomValidation):
         test_file.unlink()
 
     def testND(self):
-        for i in range(1, 6):  # up to 5 dimensions
+        for i in range(2, 6):  # up to 5 dimensions
             test_data = {'int_type_nd': np.ones(i * (10,), dtype=int),
                          'float_type_nd': np.ones(i * (10,), dtype=float),
                          'complex_type_nd': np.ones(i * (10,)) * (1+1j),
-                         # 'string_type_nd': np.tile(
-                         #    np.array(['a', 'b', 'cd', 'äöü']), i * (5,)),
+                         'string_type_nd': np.tile(
+                            np.array(['a', 'b', 'cd', 'äöü']), i * (5,)),
                          }
 
             test_file = itsh5py.save(f'test_array_{i}d', test_data)

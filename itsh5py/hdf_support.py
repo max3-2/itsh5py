@@ -277,6 +277,20 @@ def unpack_dataset(item):
                 value = yaml.safe_load(value)
             value = np.array(value)
 
+        elif item.attrs[TYPEID] == 'str_array':
+            value = item[()]
+            init_shape = value.shape
+            try:
+                value = np.array(
+                    [v.decode() for v in value.ravel()]).reshape(init_shape)
+            except UnicodeDecodeError:
+                try:
+                    value = np.array(
+                        [v.decode() for v in value.ravel()]).reshape(init_shape)
+                except UnicodeDecodeError:
+                    logger.exception(f'Cant decode bytes in {item.name}')
+                    value = None
+
         elif item.attrs[TYPEID] == 'list_arr':
             value = list(item[()])
 
@@ -453,6 +467,26 @@ def pack_dataset(hdfobject, key, value, compress):
     def _dump_array(name, array, group, compress, type_id=None):
         if len(array) == 0:
             return
+
+        # This is a string array - to avoid unicode this will be made binary
+        # and stored with a unique typeid
+        if array.dtype.str.startswith('<U'):
+            logger.debug('(unicode) str array found, making list')
+            init_shape = array.shape
+            array = np.array([str(v).encode() for v in array.ravel()]).reshape(init_shape)
+            if compress[0]:
+                subset = group.create_dataset(
+                    name=name, data=array, compression='gzip',
+                    compression_opts=compress[1])
+            else:
+                subset = group.create_dataset(
+                    name=name, data=array)
+            subset.attrs.create(
+                name=TYPEID,
+                data=str('str_array'))
+
+            return
+
 
         logger.debug(f'Dumping array {name} to file')
         if compress[0]:
