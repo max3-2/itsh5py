@@ -400,7 +400,12 @@ def load(hdf, unpack_attrs=False, unpacker=unpack_dataset):
     if lazy:
         data = is_open(hdf)
         if data is not None:
-            return data
+            if 'attrs' not in data and unpack_attrs:
+                logger.debug('Reloading file attributes to unwrap...')
+                data['attrs'] = {k: v for k, v in data.h5file.attrs.items()}
+                return data
+            else:
+                return data
 
     # Else open the file and go on
     hdf_handle = h5py.File(hdf, 'r')

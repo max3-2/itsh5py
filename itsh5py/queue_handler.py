@@ -34,13 +34,20 @@ def is_open(filepath):
 
 
 def remove_from_queue(file):
-    """Removes file from the queue and from memory. Only if file exists"""
+    """
+    Removes file from the queue and from memory. Only if file exists.
+
+    This is more complicated than it should be. The issue is that in the queue
+    the actual LazyHdfDict are stored and comparison of those on remove can
+    fail. So comaprison is done on file name basis and removal via index.
+    """
     filenames = [h.h5file.filename for h in open_files]
     logger.debug(f'Removing {file} from queue: {filenames}')
     if file in filenames:
-        handle = open_files[filenames.index(file)]
-        open_files.remove(handle)
+        handle_index = filenames.index(file)
+        handle = open_files[handle_index]
         close(handle)
+        del open_files[handle_index]
         logger.debug(f'File {file} removed from queue')
     else:
         logger.debug(f'File {file} not found in queue, can not remove!')
