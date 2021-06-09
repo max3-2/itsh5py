@@ -7,7 +7,9 @@ import unittest
 import logging
 from pathlib import Path
 import numpy as np
+import pandas as pd
 from numpy.testing import assert_array_equal
+from pandas.testing import assert_frame_equal
 import itsh5py
 
 logger = logging.getLogger('itsh5py')
@@ -226,6 +228,28 @@ class TestArrayTypes(unittest.TestCase, CustomValidation):
             self.assertIsInstance(test_data_loaded, dict)
             self.assertDictEqual_with_arrays(test_data, test_data_loaded)
             test_file.unlink()
+
+
+class TestPandasTypes(unittest.TestCase):
+    def test_single(self):
+        test_data = {'dataframe': pd.DataFrame(np.ones((100,5)))
+                     }
+
+        test_file = itsh5py.save('test_dataframe', test_data)
+        test_data_loaded = itsh5py.load(test_file)
+
+        assert_frame_equal(test_data['dataframe'], test_data_loaded)
+        test_file.unlink()
+
+    def test_bare(self):
+        test_data = pd.DataFrame(np.ones((100,5)))
+
+        test_file = itsh5py.save('test_dataframe_bare', test_data)
+        test_data_loaded = itsh5py.load(test_file)
+
+        assert_frame_equal(test_data, test_data_loaded)
+        test_file.unlink()
+
 
 class TestInvalidType(unittest.TestCase):
     """Tests a fail, here we use a callable which is not implemented

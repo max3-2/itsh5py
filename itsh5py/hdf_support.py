@@ -691,12 +691,13 @@ def save(hdf, data, compress=config.default_compression, packer=pack_dataset, *a
     for k, v in data.items():
         if isinstance(v, (pd.DataFrame, pd.Series)):
             if compress[0]:
-                v.to_hdf(hdf, key=k, mode=file_mode, compress=compress[1], complib='zlib')
+                v.to_hdf(hdf, key=k, mode=file_mode, complevel=compress[1], complib='zlib')
             else:
-                v.to_hdf(hdf, key=k, mode=file_mode, compress=None)
+                v.to_hdf(hdf, key=k, mode=file_mode, complib=None)
             pandas_keys.append(k)
             file_mode = 'r+'
 
+    data = data.copy()  # this is needed so popping wont change the input data
     for k in pandas_keys:
         _ = data.pop(k)
 
