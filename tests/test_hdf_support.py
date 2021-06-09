@@ -293,6 +293,66 @@ class TestInvalidType(unittest.TestCase):
         Path('test_fail.hdf').unlink()
 
 
+class TestManyFiles(unittest.TestCase):
+    def test_without_fallback(self):
+        itsh5py.config.use_lazy = True  # Need lazy for queue tests
+        nf = 20
+        datasets = [{
+            'data_1': np.random.random((10, 10)),
+            'data_2': np.random.random((10, 10)),
+            } for i in range(nf)]
+
+        files = [itsh5py.save(f'test_file_{i}', data)
+                 for i, data in enumerate(datasets)]
+
+        loaded = [itsh5py.load(file) for file in files]
+        logger.debug(f'Open Queue: {itsh5py.open_filenames()}')
+        logger.info(f'{nf} files generated and reloaded, '
+                    f'{len(itsh5py.open_filenames())} in buffer. max={itsh5py.max_open_files}')
+
+        for i, l in enumerate(loaded):
+            if i < (nf - itsh5py.max_open_files):
+                self.assertIsNone(l['data_1'])
+            else:
+                assert_array_equal(datasets[i]['data_1'], l['data_1'])
+                assert_array_equal(datasets[i]['data_2'], l['data_2'])
+
+            l.close()
+            files[i].unlink()
+
+        itsh5py.config.use_lazy = False
+
+    def test_with_fallback(self):
+        itsh5py.config.use_lazy = True  # Need lazy for queue tests
+        itsh5py.config.allow_fallback_open = True
+        nf = 20
+        datasets = [{
+            'data_1': np.random.random((10, 10)),
+            'data_2': np.random.random((10, 10)),
+            } for i in range(nf)]
+
+        files = [itsh5py.save(f'test_file_fallback_{i}', data)
+                 for i, data in enumerate(datasets)]
+
+        loaded = [itsh5py.load(file) for file in files]
+        logger.debug(f'Open Queue: {itsh5py.open_filenames()}')
+        logger.info(f'{nf} files generated and reloaded, '
+                    f'{len(itsh5py.open_filenames())} in buffer. max={itsh5py.max_open_files}')
+
+        for i, l in enumerate(loaded):
+            assert_array_equal(
+                datasets[i]['data_1'], l['data_1'],
+                err_msg=f'Array comparison for i={i} failed')
+            assert_array_equal(
+                datasets[i]['data_2'], l['data_2'],
+                err_msg=f'Array comparison for i={i} failed')
+
+            l.close()
+            files[i].unlink()
+
+        itsh5py.config.allow_fallback_open = False
+        itsh5py.config.use_lazy = False
+
 if __name__ == '__main__':
     if 'log' in argv[1:]:
         logging.basicConfig(
