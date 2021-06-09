@@ -152,6 +152,41 @@ class TestIterableTypes(unittest.TestCase):
         test_file.unlink()
 
 
+class TestNestedTypes(unittest.TestCase):
+    def test_nested(self):
+        test_data_2 = {'list_type': [1, 2., '3'],
+                       'tuple_type': (1, 2., '3'),
+                       'set_type': set([1, 2., '3']),
+                       }
+
+        test_data_1 = {'int_type': 1,
+                       'float_type': 1.,
+                       'complex_type': 1+1j,
+                       'nested_2': test_data_2,
+                       }
+
+        test_data = {'int_type': 1,
+                     'float_type': 1.,
+                     'complex_type': 1+1j,
+                     'nested': test_data_1,
+                     }
+
+        test_file = itsh5py.save('test_nested', test_data)
+
+        # First lazy, check the tree and the lazy load
+        itsh5py.config.use_lazy = True
+        test_data_loaded = itsh5py.load(test_file)
+        print(test_data_loaded)
+        test_data_loaded.close()
+
+        # Now the basic comparison
+        itsh5py.config.use_lazy = False
+        test_data_loaded = itsh5py.load(test_file)
+        self.assertIsInstance(test_data_loaded, dict)
+        self.assertDictEqual(test_data, test_data_loaded)
+        test_file.unlink()
+
+
 class TestArrayTypes(unittest.TestCase, CustomValidation):
     def test1D(self):
         test_data = {'int_type_1d': np.ones((10,), dtype=int),
