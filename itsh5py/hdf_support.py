@@ -658,7 +658,7 @@ def save(hdf, data, compress=config.default_compression, packer=pack_dataset, *a
                 _recurse(value, hdfgroup)
             else:
                 if isinstance(value, (pd.DataFrame, pd.Series)):
-                    logger.warning('Currently, pandas must be stored in root')
+                    raise TypeError('pandas Data must be stored in root group')
                 else:
                     packer(hdfobject, key, value, compress)
 

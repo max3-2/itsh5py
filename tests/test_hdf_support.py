@@ -22,6 +22,11 @@ class CustomValidation(object):
             if isinstance(value, np.ndarray):
                 assert isinstance(d2[key], np.ndarray), "Second element not an array"
                 assert_array_equal(value, d2[key], err_msg='Array mismatch')
+
+            elif isinstance(value, pd.DataFrame):
+                assert isinstance(d2[key], pd.DataFrame), "Second element not a DataFrame"
+                assert_frame_equal(value, d2[key])
+
             else:
                 assert value == d2[key], "Non-Array item mismatch"
 
@@ -230,7 +235,7 @@ class TestArrayTypes(unittest.TestCase, CustomValidation):
             test_file.unlink()
 
 
-class TestPandasTypes(unittest.TestCase):
+class TestPandasTypes(unittest.TestCase, CustomValidation):
     def test_single(self):
         test_data = {'dataframe': pd.DataFrame(np.ones((100,5)))
                      }
@@ -250,6 +255,31 @@ class TestPandasTypes(unittest.TestCase):
         assert_frame_equal(test_data, test_data_loaded)
         test_file.unlink()
 
+    def test_frame_lvl1(self):
+        test_data = {'dataframe': pd.DataFrame(np.ones((100,5))),
+                     'meta': [1, 2, 3],
+                     'meta2': np.array([1, 2., 3.]),
+                     }
+
+        test_file = itsh5py.save('test_dataframe_lvl1', test_data)
+        test_data_loaded = itsh5py.load(test_file)
+
+        self.assertIsInstance(test_data_loaded, dict)
+        self.assertDictEqual_with_arrays(test_data, test_data_loaded)
+        test_file.unlink()
+
+    def test_frame_lvl2(self):
+        lvl2 = {'dataframe': pd.DataFrame(np.ones((100,5))),
+                'meta2': np.array([1, 2., 3.]),
+                }
+        test_data = {'nested': lvl2,
+                     'meta': [1, 2, 3],
+                     }
+
+        with self.assertRaises(TypeError):
+            _ = itsh5py.save('test_dataframe_lvl2', test_data)
+
+        Path('test_dataframe_lvl2' + itsh5py.config.default_suffix).unlink()
 
 class TestInvalidType(unittest.TestCase):
     """Tests a fail, here we use a callable which is not implemented
