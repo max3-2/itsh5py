@@ -23,12 +23,12 @@ def add_open_file(lazy_dict):
     logger.debug(f'Added new file to queue: {lazy_dict.h5file.filename}')
 
 
-def is_open(file):
+def is_open(filepath):
     """Checks if a file is in the queue and thus oenened in memory."""
     filenames = [h.h5file.filename for h in open_files]
-    if file in filenames:
-        logger.debug(f'File {file} found in memory - returning...')
-        return open_files[filenames.index(file)]
+    if filepath.name in filenames:
+        logger.debug(f'File {filepath.name} found in memory - returning...')
+        return open_files[filenames.index(filepath.name)]
     else:
         return None
 
@@ -36,6 +36,7 @@ def is_open(file):
 def remove_from_queue(file):
     """Removes file from the queue and from memory. Only if file exists"""
     filenames = [h.h5file.filename for h in open_files]
+    logger.debug(f'Removing {file} from queue: {filenames}')
     if file in filenames:
         handle = open_files[filenames.index(file)]
         open_files.remove(handle)

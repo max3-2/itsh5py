@@ -163,6 +163,10 @@ demo2.hdf
 └─ /y::(200, 200)
 ```
 
+You can always *unlazy* a *LazyHdfDict* by either calling `dict()` or using the
+`.unlazy()` method. The latter is a wrapper that takes care of closing the
+then unused reference.
+
 ## Attributes
 Attributes can be used to add (scalar) quantities to *hdf* types (*Files*,
 *Groups*, *Datasets*). They can be loaded using the `unpack_attrs` option to

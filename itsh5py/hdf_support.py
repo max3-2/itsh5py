@@ -181,13 +181,11 @@ class LazyHdfDict(UserDict):
         return item
 
     def unlazy(self):
-        """Unpacks all datasets.
-
-        With this trick, you can call dict(this_instance) then to get a
-        *real* dict. The file is then closed and removed from the queue.
+        """Unpacks all datasets and closes the Lazy reference
         """
-        load(self, lazy=False)
+        unlazied = dict(self)
         self.close()
+        return unlazied
 
     def close(self):
         """Closes the h5file if provided at initialization.
