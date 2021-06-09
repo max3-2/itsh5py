@@ -210,11 +210,24 @@ slicing and so on with all basic `h5py` methods on the file.
 
 ## Queue System
 Open files (at least *lazy* ones) are stored in a queue. The handling Functions
-are mostly hidden and do not need to ne accessed. However there are two
+are mostly hidden and do not need to be accessed. However there are two
 things to not here: The amount of files open at once can be controlled via the
 `itsh5py.max_open_files` attribute. Currently open files can be shown using
 ```python
 itsh5py.open_filenames()
 ['demo2.hdf', 'demo.hdf']
 ```
+
+There might be situations where large amounts of open files can be present, e.g.
+in list comprehensions. This can be handled in two ways:
+1. Setting `itsh5py.max_open_files` to a large number. Be aware that this,
+combined with unlazy files, can be difficult for RAM and slow down the
+process considerably.
+2. Using `itsh5.config.allow_fallback_open = True` (defaults to `False`). Since
+closing a *LazyHdfDict* does not remove the *python* instance, this allows to
+reopen a file on the fly to access unwrapped data from a previously open file.
+This will only open the file to get the data and subsequently close it again,
+preventing memory issues but also slowing down the process.
+
+
 [panoply]: https://www.giss.nasa.gov/tools/panoply/
