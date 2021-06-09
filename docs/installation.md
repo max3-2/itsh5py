@@ -22,6 +22,7 @@ of grace. Since this package will most likely be used for data storage please
 always consider checking if *your* type is saved **and loaded** correctly. If
 in doubt, always open the file with `h5py.File()` and check. Feel free to
 report missing or buggy data types and they will be implemented if possible.
+- Numpy object arrays are not supported.
 - Keys of the dictionary which will be saved should only be strings to avoid.
 Any other typer are not tested and most likely will fail.
 
