@@ -25,6 +25,7 @@ report missing or buggy data types and they will be implemented if possible.
 - Numpy object arrays are not supported.
 - Keys of the dictionary which will be saved should only be strings to avoid.
 Any other typer are not tested and most likely will fail.
+- Lazy slicing of arrays is not supported (yet).
 - Long tuples and mixed type lists will be saved element-wise and thus be slow.
 This is recognizable starting at approx. 100 elements.
 
