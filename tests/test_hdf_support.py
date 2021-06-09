@@ -11,6 +11,16 @@ from numpy.testing import assert_array_equal
 import itsh5py
 
 logger = logging.getLogger('itsh5py')
+itsh5py.config.use_lazy = False  # Set lazy to False so the data can be compared.
+
+class CustomValidation(object):
+    def assertDictEqual_with_arrays(self, d1, d2):
+        assert d1.keys() == d2.keys(), "Dict mismatch in keys"
+        for key, value in d1.items():
+            if isinstance(value, np.ndarray):
+                assert_array_equal(value, d2[key], err_msg='Array mismatch')
+            else:
+                assert value == d2[key], "Non-Array item mismatch"
 
 
 class TestSupplementary(unittest.TestCase):
@@ -33,6 +43,21 @@ class TestSupplementary(unittest.TestCase):
         self.assertEqual(str(test_file.name), 'test_ending' + itsh5py.config.default_suffix)
         test_file.unlink()
 
+        logger.debug('Tree view test / Lazy Test')
+        itsh5py.config.use_lazy = True
+        test_data = {'int_type': 1,
+                     'float_type': 1.,
+                     }
+
+        test_file = itsh5py.save('test_tree', test_data)
+        test_data_loaded = itsh5py.load(test_file)
+        print(test_data_loaded)
+        self.assertEqual(itsh5py.max_open_files, 12)
+        self.assertEqual(itsh5py.open_filenames(), ['test_tree.hdf'])
+        test_data_loaded.close()
+
+        itsh5py.config.use_lazy = False
+        test_file.unlink()
 
 class TestBasicTypes(unittest.TestCase):
     """Tests the most basic types for IO
@@ -78,6 +103,7 @@ class TestIterableTypes(unittest.TestCase):
         test_data = {'list_type': [1, 2, 3],  # fails due to array conv.
                      'tuple_type': (1, 2, 3),
                      'set_type': set([1, 2, 3]),
+                     'list_type_str': ['a', 'b', 'cd', 'äöü'],
                      }
 
         test_file = itsh5py.save('test_iterables', test_data)
@@ -114,6 +140,37 @@ class TestIterableTypes(unittest.TestCase):
         test_file.unlink()
 
 
+class TestArrayTypes(unittest.TestCase, CustomValidation):
+    def test1D(self):
+        test_data = {'int_type_1d': np.ones((10,), dtype=int),
+                     'float_type_1d': np.ones((10,), dtype=float),
+                     'complex_type_1d': np.ones((10,)) * (1+1j),
+                     # 'string_type_1d': np.array(['a', 'b', 'cd', 'äöü']),
+                     }
+
+        test_file = itsh5py.save('test_array_1d', test_data)
+        test_data_loaded = itsh5py.load(test_file)
+
+        self.assertIsInstance(test_data_loaded, dict)
+        self.assertDictEqual_with_arrays(test_data, test_data_loaded)
+        test_file.unlink()
+
+    def testND(self):
+        for i in range(1, 6):  # up to 5 dimensions
+            test_data = {'int_type_nd': np.ones(i * (10,), dtype=int),
+                         'float_type_nd': np.ones(i * (10,), dtype=float),
+                         'complex_type_nd': np.ones(i * (10,)) * (1+1j),
+                         # 'string_type_nd': np.tile(
+                         #    np.array(['a', 'b', 'cd', 'äöü']), i * (5,)),
+                         }
+
+            test_file = itsh5py.save(f'test_array_{i}d', test_data)
+            test_data_loaded = itsh5py.load(test_file)
+
+            self.assertIsInstance(test_data_loaded, dict)
+            self.assertDictEqual_with_arrays(test_data, test_data_loaded)
+            test_file.unlink()
+
 class TestInvalidType(unittest.TestCase):
     """Tests a fail, here we use a callable which is not implemented
     """
@@ -135,5 +192,4 @@ if __name__ == '__main__':
         logger.info('Logging ON')
         argv.remove('log')
 
-    itsh5py.config.use_lazy = False  # Set lazy to False so the data can be compared.
     unittest.main()

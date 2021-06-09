@@ -9,5 +9,5 @@ __copyright__ = 'Max Elfner, ITS, KIT https://www.its.kit.edu'
 __license__ = 'MIT'
 
 from .hdf_support import save, load, LazyHdfDict
-from .queue_handler import max_open_files, open_files
+from .queue_handler import max_open_files, open_filenames
 from . import config
