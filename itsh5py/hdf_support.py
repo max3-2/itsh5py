@@ -258,16 +258,6 @@ def unpack_dataset(item):
                     logger.exception(f'Cant decode bytes in {item.name}')
                     value = None
 
-        elif item.attrs[TYPEID] == 'objArray':
-            try:
-                value = np.array([it.decode() for it in item[()]])
-            except UnicodeDecodeError:
-                try:
-                    value = [it.decode('latin-1') for it in item[()]]
-                except UnicodeDecodeError:
-                    logger.exception(f'Cant decode bytes in {item.name}')
-                    value = None
-
         elif item.attrs[TYPEID] == 'strArray':
             logger.warning('The strArray typeID is deprecated!')
             value = item[()]
@@ -502,12 +492,6 @@ def pack_dataset(hdfobject, key, value, compress):
             subset.attrs.create(
                 name=TYPEID,
                 data=str('strlist'))
-
-        elif np.issubdtype(array.dtype, object):
-            logger.debug(f'Numpy object array found for {name}, adding type hint')
-            subset.attrs.create(
-                name=TYPEID,
-                data=str('objArray'))
 
         elif type_id is not None:
             subset.attrs.create(
