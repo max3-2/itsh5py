@@ -43,7 +43,7 @@ class TestSupplementary(unittest.TestCase):
         self.assertEqual(str(test_file.name), 'test_ending' + itsh5py.config.default_suffix)
         test_file.unlink()
 
-        logger.debug('Tree view test / Lazy Test')
+        logger.debug('Tree view test / Lazy Test / Queue Test')
         itsh5py.config.use_lazy = True
         test_data = {'int_type': 1,
                      'float_type': 1.,
@@ -53,8 +53,10 @@ class TestSupplementary(unittest.TestCase):
         test_data_loaded = itsh5py.load(test_file)
         print(test_data_loaded)
         self.assertEqual(itsh5py.max_open_files, 12)
-        self.assertEqual(itsh5py.open_filenames(), ['test_tree.hdf'])
+        self.assertEqual(itsh5py.open_filenames(), [test_file.name])
         test_data_loaded.close()
+        self.assertTrue(not itsh5py.queue_handler.is_open(test_file.name))
+        self.assertEqual(len(itsh5py.queue_handler.open_files), 0)
 
         itsh5py.config.use_lazy = False
         test_file.unlink()
@@ -95,6 +97,16 @@ class TestBasicTypes(unittest.TestCase):
 
         self.assertIsInstance(test_data_loaded, dict)
         self.assertDictEqual(test_data, test_data_loaded)
+        test_file.unlink()
+
+    def test_singleton(self):
+        test_data = {'int_type': 1,
+                     }
+
+        test_file = itsh5py.save('test_singleton', test_data)
+        test_data_loaded = itsh5py.load(test_file)
+
+        self.assertEqual(test_data_loaded, 1)
         test_file.unlink()
 
 
