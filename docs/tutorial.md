@@ -24,7 +24,7 @@ like *hdfview* or [Panoply][panoply]:
 ![](../demo/panoply_plot.png)
 
 However, sometimes you just need to store some metadata with your file and
-attributes just don't do it. Most of the types used in python are supported,
+attributes just won't do it. Most of the types used in python are supported,
 thus
 
 ```python
@@ -35,7 +35,7 @@ This can be inspected too:
 ![](../demo/panoply_demo2.png)
 
 As you can see, a mixed list is split into its elements since this type is
-not supported. For other types, other conversions exist. They will be
+not supported by *hdf*. For other types, other conversions exist. They will be
 visible when opening the files using `h5py` or similar but when loading them
 using `itsh5py`, they are converted back.
 
@@ -143,17 +143,15 @@ basic_demo_2
 ```
 </details>
 
-Which is, while not pretty, what was expected since its the same as the input.
+Which is, while not pretty, what was expected since it's the same as the input.
 
-Taking a look at the *LazyHdfDict* is structured better:
-```python
-lazy_demo
+Taking a look at the *LazyHdfDict*, this is structured better:
+```
 demo.hdf
 ├─ /data::(200, 200)
 ├─ /x::(200, 200)
 └─ /y::(200, 200)
 
-lazy_demo_2
 demo2.hdf
 ├─ /data::(200, 200)
 ├─ Group /meta
@@ -184,7 +182,10 @@ file = itsh5py.save('demo_att',
                                },
                      })
 reloaded = itsh5py.load(file)
-reloaded
+```
+```
+reloaded:
+
 demo_att.hdf
 ├─ /data::(200, 200)
 ├─ /x::(200, 200)
