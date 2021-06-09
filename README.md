@@ -1,4 +1,5 @@
 # itsh5py
+*Python datatype support for hdf files*
 
 While there are many ways to store different data types, many of them have
 their drawbacks. Sometimes it can be practical to store arrays with
