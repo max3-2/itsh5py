@@ -63,7 +63,7 @@ class TestSupplementary(unittest.TestCase):
         self.assertEqual(itsh5py.max_open_files, 12)
         self.assertEqual(itsh5py.open_filenames(), [test_file.name])
         test_data_loaded.close()
-        self.assertTrue(not itsh5py.queue_handler.is_open(test_file.name))
+        self.assertTrue(not itsh5py.queue_handler.is_open(test_file))
         self.assertEqual(len(itsh5py.queue_handler.open_files), 0)
 
         itsh5py.config.use_lazy = False
