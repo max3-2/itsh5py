@@ -129,10 +129,11 @@ class TestIterableTypes(unittest.TestCase):
     def test_mixed_iterables(self):
         test_data = {'list_type': [1, 2., '3'],
                      'tuple_type': (1, 2., '3'),
+                     'long_tuple_type': tuple([i for i in range(1000)]),
                      'set_type': set([1, 2., '3']),
                      }
 
-        test_file = itsh5py.save('test_iterables', test_data)
+        test_file = itsh5py.save('test_mixed_iterables', test_data)
         test_data_loaded = itsh5py.load(test_file)
 
         self.assertIsInstance(test_data_loaded, dict)
@@ -170,6 +171,10 @@ class TestNestedTypes(unittest.TestCase):
                      'float_type': 1.,
                      'complex_type': 1+1j,
                      'nested': test_data_1,
+                     'list_of_str_lists': [['a', 'b', 'C'], ['D', 'e']],
+                     'tuple_of_str_tuples': (('a', 'b', 'C'), ('D', 'e')),
+                     'list_of_str_lists_ascii': [['a', 'b', 'C'], ['D', 'e'], ['1', 'ä']],
+                     'tuple_of_str_tuples_ascii': (('a', 'b', 'C'), ('D', 'e'), ('1', 'ü')),
                      }
 
         test_file = itsh5py.save('test_nested', test_data)
@@ -211,7 +216,7 @@ class TestArrayTypes(unittest.TestCase, CustomValidation):
                          'complex_type_nd': np.ones(i * (10,)) * (1+1j),
                          'string_type_nd': np.tile(
                             np.array(['a', 'b', 'cd', 'äöü']), i * (5,)),
-                        'string_type_nd_bin': np.tile(
+                         'string_type_nd_bin': np.tile(
                            np.array(['a', 'b', 'cd', 'efG'], dtype=bytes), i * (5,)),
                          }
 

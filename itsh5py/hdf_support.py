@@ -542,8 +542,17 @@ def pack_dataset(hdfobject, key, value, compress):
                 value = np.array(value)
                 manual_type = 'list_arr'
 
-            # check for mixed type, if yes, dump to group same as tuple
+            # check for mixed type if yes, dump to group
+            # using the same as tuple
             elif not all([isinstance(v, type(value[0])) for v in value]):
+                _iterate_iter_data(hdfobject, key, value, "list")
+                return
+
+            # check for nested list if yes, dump to group
+            # using the same as tuple
+            elif (all([isinstance(v, type(value[0])) for v in value])
+                  and isinstance(value[0], list)):
+                logger.debug('Packing list of lists')
                 _iterate_iter_data(hdfobject, key, value, "list")
                 return
 
