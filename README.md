@@ -20,7 +20,7 @@ having fully loaded pythonic types and referenced *numpy* arrays in a single
 loaded file.
 
 Since this module is most likely used for data storage, please be warned that
-*tests are still a ToDo* and there is a good chance that you will encounter some
+*tests are still WiP* and there is a good chance that you will encounter some
 types that either **won't be saved** or possibly **break your file**. No
 warranty is given.
 
