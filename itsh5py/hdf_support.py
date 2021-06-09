@@ -395,6 +395,9 @@ def load(hdf, unpack_attrs=False, unpacker=unpack_dataset):
 
         hdf = Path(hdf)
 
+    if not hdf.suffix:
+        hdf = hdf.parent / (hdf.name + config.default_suffix)
+
     # First check if lazy and file is already loaded
     if lazy:
         data = is_open(hdf)
