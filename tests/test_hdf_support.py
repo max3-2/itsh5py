@@ -194,6 +194,7 @@ class TestArrayTypes(unittest.TestCase, CustomValidation):
                      'float_type_1d': np.ones((10,), dtype=float),
                      'complex_type_1d': np.ones((10,)) * (1+1j),
                      'string_type_1d': np.array(['a', 'b', 'cd', 'äöü']),
+                     'string_type_1d_bin': np.array(['a', 'b', 'cd', 'efG'], dtype=bytes),
                      }
 
         test_file = itsh5py.save('test_array_1d', test_data)
@@ -210,6 +211,8 @@ class TestArrayTypes(unittest.TestCase, CustomValidation):
                          'complex_type_nd': np.ones(i * (10,)) * (1+1j),
                          'string_type_nd': np.tile(
                             np.array(['a', 'b', 'cd', 'äöü']), i * (5,)),
+                        'string_type_nd_bin': np.tile(
+                           np.array(['a', 'b', 'cd', 'efG'], dtype=bytes), i * (5,)),
                          }
 
             test_file = itsh5py.save(f'test_array_{i}d', test_data)

@@ -248,7 +248,7 @@ def unpack_dataset(item):
         elif item.attrs[TYPEID] == 'tuple':
             value = 0
 
-        elif item.attrs[TYPEID] == 'strlist':
+        elif item.attrs[TYPEID] == 'list_str':
             try:
                 value = [it.decode() for it in item[()]]
             except UnicodeDecodeError:
@@ -487,13 +487,7 @@ def pack_dataset(hdfobject, key, value, compress):
             subset = group.create_dataset(
                 name=name, data=array)
 
-        if np.issubdtype(array.dtype, bytes) or array.dtype.str.startswith('|S'):
-            logger.debug(f'Numpy binary (str?) array found for {name}, adding type hint to unwrap as list')
-            subset.attrs.create(
-                name=TYPEID,
-                data=str('strlist'))
-
-        elif type_id is not None:
+        if type_id is not None:
             subset.attrs.create(
                 name=TYPEID,
                 data=str(type_id))
@@ -558,6 +552,7 @@ def pack_dataset(hdfobject, key, value, compress):
                 value = np.array([str(v).encode() for v in value])
                 logger.debug('List of strings will be binarized as array, adding type '
                              f'attribute for later decompression for {key}...')
+                manual_type = 'list_str'
 
             # List of numpy arrays (changing shape possible)
             elif all([isinstance(v, np.ndarray) for v in value]):
