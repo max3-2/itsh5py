@@ -7,7 +7,7 @@ additional (pythonic) data in a single file. While *hdf attributes* can
 support some types, many exception exists especially with pyhtonic types.
 
 This is a small implementation of recursive dict support for python to write
-and read h5 files with many different pythonic data types. Almost all types
+and read *hdf* files with many different pythonic data types. Almost all types
 implemented in default python and *numpy* should be supported, even in nested
 structures. The resulting files work in hdfview and panoply with some small
 drawbacks.
@@ -27,6 +27,8 @@ warranty is given.
 
 The original idea was taken from [SiggiGue](https://github.com/SiggiGue/hdfdict)
 thus there are some obvious similarities. This package extends the
-functionality to handle most of the pythonic data types.
+functionality to handle most of the pythonic data types and adds functions
+for convenient handling of the different data structures.
+
 
 Find the [Full documentation here](https://www.google.com)

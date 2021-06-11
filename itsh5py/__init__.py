@@ -1,8 +1,8 @@
-"""Main init file of itsh5py
+"""Python datatype support for hdf files
 """
 # Metadata
 __title__ = 'itsh5py'
-__version__ = '0.6.0'  # Remove on release
+__version__ = '0.6.3'  # Remove on release, set to 0.6.0.
 __date__ = '2021–06–15'
 __author__ = 'Max Elfner'
 __copyright__ = 'Max Elfner, ITS, KIT https://www.its.kit.edu'

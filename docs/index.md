@@ -7,7 +7,7 @@ in a single file. While *hdf attributes* can support some types, many exception
 exists especially with python types.
 
 This is a small implementation of recursive dict support for python to write
-and read h5 files with many different pythonic data types. Almost all types
+and read *hdf-files* with many different pythonic data types. Almost all types
 implemented in default python and *numpy* should be supported, even in nested
 structures. The resulting files work in *hdfview* and *panoply* with some small
 drawbacks.
