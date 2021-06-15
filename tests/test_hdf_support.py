@@ -69,6 +69,39 @@ class TestSupplementary(unittest.TestCase):
         itsh5py.config.use_lazy = False
         test_file.unlink()
 
+
+class TestPathFlavors(unittest.TestCase):
+    def setUp(self):
+        self.test_data = {
+            'int_type': 1,
+            'float_type': 1.,
+            'complex_type': 1+1j,
+            }
+
+        Path('test_data/').mkdir()
+
+    def test_unix(self):
+        target = 'test_data/unix_test.hdf'
+        file = itsh5py.save(target, self.test_data)
+        assert file.exists(), "UNIX style save failed"
+        file.unlink()
+
+    def test_win_escaped(self):
+        target = 'test_data\\unix_test.hdf'
+        file = itsh5py.save(target, self.test_data)
+        assert file.exists(), "Windows escaped style save failed"
+        file.unlink()
+
+    def test_win_raw(self):
+        target = r'test_data\unix_test.hdf'
+        file = itsh5py.save(target, self.test_data)
+        assert file.exists(), "Windows raw style save failed"
+        file.unlink()
+
+    def tearDown(self):
+        Path('test_data/').rmdir()
+
+
 class TestBasicTypes(unittest.TestCase):
     """Tests the most basic types for IO
     """
