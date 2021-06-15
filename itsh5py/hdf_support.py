@@ -334,6 +334,9 @@ def load(hdf, unpack_attrs=False, unpacker=unpack_dataset):
                     dl.append(_recurse_iter_data(v, True))
                 elif v.attrs[TYPEID] == 'list':
                     dl.append(_recurse_iter_data(v))
+                elif v.attrs[TYPEID] == 'path_list' or v.attrs[TYPEID] == 'path_tuple':
+                    dl.append(_recurse_iter_data(v))
+
                 else:
                     dl.append(unpacker(v))
             else:
@@ -359,6 +362,9 @@ def load(hdf, unpack_attrs=False, unpacker=unpack_dataset):
                         datadict[key] = _recurse_iter_data(value, True)
                     elif value.attrs[TYPEID] == 'list':
                         datadict[key] = _recurse_iter_data(value)
+                    elif value.attrs[TYPEID] == 'path_list' or value.attrs[TYPEID] == 'path_tuple':
+                        datadict[key] = _recurse_iter_data(value, 'tuple' in value.attrs[TYPEID])
+
                     else:
                         if lazy:
                             datadict[key] = value
@@ -486,7 +492,6 @@ def pack_dataset(hdfobject, key, value, compress):
 
             return
 
-
         logger.debug(f'Dumping array {name} to file')
         if compress[0]:
             subset = group.create_dataset(
@@ -501,26 +506,32 @@ def pack_dataset(hdfobject, key, value, compress):
                 name=TYPEID,
                 data=str(type_id))
 
-    def _iterate_iter_data(hdfobject, key, value, typeID):
+    def _iterate_iter_data(hdfobject, key, value, typeID, inner_id=None):
         ds = hdfobject.create_group(key)
         elementsOrder = int(np.floor(np.log10(len(value))) + 1)
         fmt = 'i_{:0' + str(elementsOrder) + 'd}'
         for i, v in enumerate(value):
             if isinstance(v, tuple):
-                _iterate_iter_data(ds, fmt.format(i), v, "tuple")
+                _iterate_iter_data(ds, fmt.format(i), v, "tuple", inner_id)
             elif isinstance(v, list):
                 # check for mixed type, if yes, dump to group as tuple
                 if not all([isinstance(v, type(value[0])) for v in value]):
-                    _iterate_iter_data(hdfobject, key, value, "list")
+                    _iterate_iter_data(hdfobject, key, value, "list", inner_id)
                 else:
-                    _iterate_iter_data(ds, fmt.format(i), v, "list")
+                    _iterate_iter_data(ds, fmt.format(i), v, "list", inner_id)
             else:
                 if isinstance(v, np.ndarray):
                     _dump_array(fmt.format(i), v, ds, compress)
                 else:
                     if isinstance(v, np.str_):
                         v = str(v)
-                    ds.create_dataset(name=fmt.format(i), data=v)
+                    inner = ds.create_dataset(name=fmt.format(i), data=v)
+
+                    if inner_id is not None:
+                        logger.debug(f'Adding innermost id {inner_id} to {inner}')
+                        inner.attrs.create(
+                            name=TYPEID,
+                            data=str(inner_id))
 
         ds.attrs.create(
             name=TYPEID,
@@ -540,6 +551,26 @@ def pack_dataset(hdfobject, key, value, compress):
 
     try:
         manual_type = None
+
+        # Catch a list or tuple of Path as a special cases
+        if isinstance(value, tuple) or isinstance(value, list):
+            if isinstance(value[0], Path):
+                if not all([isinstance(v, type(value[0])) for v in value]):
+                    error = 'Path iterables are only supported in homogeneoeus packs'
+                    logger.error(error)
+                    raise RuntimeError(error)
+
+                if isinstance(value, tuple): path_type = 'tuple'
+                elif isinstance(value, list): path_type = 'list'
+                else:
+                    error = 'Unsupported Path iterable'
+                    logger.error(error)
+                    raise RuntimeError(error)
+
+                _iterate_iter_data(
+                    hdfobject, key, [str(v) for v in value], path_type, inner_id='path')
+                return
+
         if isinstance(value, tuple):
             _iterate_iter_data(hdfobject, key, value, "tuple")
             return

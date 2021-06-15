@@ -121,6 +121,22 @@ class TestBasicTypes(unittest.TestCase):
         self.assertDictEqual(test_data, test_data_loaded)
         test_file.unlink()
 
+    def test_path_save(self):
+        test_data = {'win_escaped': Path('relative\\test\\path'),
+                     'win_raw': Path(r'relative\test\path'),
+                     'unix': Path('relative/test/path'),
+                     'path_list': [Path('relative/test/path'),
+                                   Path('relative/test/pat2')],
+                     'path_tuple': (Path('relative/test/path'),
+                                    Path('relative/test/pat2')),
+                    }
+
+        test_file = itsh5py.save('test_pathes', test_data)
+        test_data_loaded = itsh5py.load(test_file)
+        self.assertIsInstance(test_data_loaded, dict)
+        self.assertDictEqual(test_data, test_data_loaded)
+        test_file.unlink()
+
     def test_string(self):
         test_data = {'string_type': 'string',
                      'unicode_str_type': 'öäü°^'
