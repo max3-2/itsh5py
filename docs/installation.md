@@ -28,6 +28,8 @@ any ambiguity. Any other typer are not tested and most likely will fail.
 - Lazy slicing of arrays is not supported (yet).
 - Long tuples and mixed type lists will be saved element-wise and thus be slow.
 This is recognizable starting at approx. 100 elements.
+- Path object are supported as single datasets or as *list* or *tuple*
+iterables - however only non nested type.
 - Closing a *LazyHdfDict* will close the file reference - even if another
 *LazyHdfDict* accesses the same file (which should not happen too often).
 
