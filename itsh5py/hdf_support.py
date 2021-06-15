@@ -282,6 +282,9 @@ def unpack_dataset(item):
         elif item.attrs[TYPEID] == 'list_arr':
             value = list(item[()])
 
+        elif item.attrs[TYPEID] == 'path':
+            value = Path(item[()].decode())
+
         else:
             raise RuntimeError('Invalid TYPEID in h5 database')
 
@@ -578,6 +581,12 @@ def pack_dataset(hdfobject, key, value, compress):
         if isinstance(value, np.ndarray):
             _dump_array(key, value, hdfobject, compress, type_id=manual_type)
             isdt = False
+
+        elif isinstance(value, Path):
+            ds = hdfobject.create_dataset(name=key, data=str(value))
+            ds.attrs.create(
+                name=TYPEID,
+                data=str('path'))
 
         else:
             if compress[0]:
