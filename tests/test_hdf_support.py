@@ -84,18 +84,21 @@ class TestPathFlavors(unittest.TestCase):
         target = 'test_data/unix_test.hdf'
         file = itsh5py.save(target, self.test_data)
         assert file.exists(), "UNIX style save failed"
+        _ = itsh5py.load(target)
         file.unlink()
 
     def test_win_escaped(self):
         target = 'test_data\\unix_test.hdf'
         file = itsh5py.save(target, self.test_data)
         assert file.exists(), "Windows escaped style save failed"
+        _ = itsh5py.load(target)
         file.unlink()
 
     def test_win_raw(self):
         target = r'test_data\unix_test.hdf'
         file = itsh5py.save(target, self.test_data)
         assert file.exists(), "Windows raw style save failed"
+        _ = itsh5py.load(target)
         file.unlink()
 
     def tearDown(self):
