@@ -15,6 +15,10 @@ drawbacks.
 A major convenience is the ability to store iterables like lists and tuples,
 even in nested form. Mixed types are also supported.
 
+Conversion, obscuration or changes to the saved types are kept at the bare
+minimum. So if, for any reasons, the files have to be used without *itsh5py*,
+all the data will be accessible with just a little added inconvenience.
+
 
 [hdfl]: https://www.hdfgroup.org
 
