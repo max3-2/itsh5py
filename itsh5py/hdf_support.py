@@ -662,7 +662,8 @@ def pack_dataset(hdfobject, key, value, compress):
                 raise RuntimeError(f'Cant save {key}')
 
 
-def save(hdf, data, compress=config.default_compression, packer=pack_dataset, *args, **kwargs):
+def save(hdf, data, compress=config.default_compression, packer=pack_dataset,
+         *args, **kwargs):
     """
     Adds keys of given dict as groups and values as datasets to the given
     hdf-file (by string or object) or group object. Iterative dicts are
@@ -671,6 +672,8 @@ def save(hdf, data, compress=config.default_compression, packer=pack_dataset, *a
     The dict can have the `attrs` key containing a dict of key, value pairs
     which are added as root level attributes to the hdf file. Those must be
     scalar, else exceptions will occur.
+
+    *args and kwargs will be passed to the `h5py.File` constructor.
 
     Parameters
     -----------
@@ -730,10 +733,15 @@ def save(hdf, data, compress=config.default_compression, packer=pack_dataset, *a
 
         return hdf
 
+    if config.allow_overwrite:
+        file_mode = 'w'
+    else:
+        file_mode = 'r+'
+
     # Dataframe in dict. Pandas is stored in advance...stupid file lock in
     # pandas prevents otherwise.
     pandas_keys = list()
-    file_mode = 'w'
+
     for k, v in data.items():
         if isinstance(v, (pd.DataFrame, pd.Series)):
             if compress[0]:

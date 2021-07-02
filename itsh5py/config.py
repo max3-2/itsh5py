@@ -14,8 +14,13 @@ allow_fallback_open: `bool`, defaults to `True`
     of a specified item. This can substantially slow down data handling,
     increase memory load and lead to access errors on files open by other
     applications.
+allow_overwrite: `bool`, defaults to `False`
+    If set to True, Files will be overwritten if existing without warning.
+    On default value of `False` the file mode will be `r+` which can lead to
+    exception if datasets already exist.
 """
 default_suffix = '.hdf'
 use_lazy = True
 default_compression = (True, 5)
 allow_fallback_open = False
+allow_overwrite = False
