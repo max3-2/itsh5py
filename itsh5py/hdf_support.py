@@ -440,8 +440,8 @@ def load(hdf, unpack_attrs=False, unpacker=unpack_dataset):
 
     hdf_handle.close()
 
-    # squeeze singleton data from dict
-    if len(data.keys()) == 1:
+    # squeeze singleton data from dict, only if enabled. Default is off
+    if config.squeeze_single and len(data.keys()) == 1:
         data = data[list(data.keys())[0]]
 
     return data

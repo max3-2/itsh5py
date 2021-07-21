@@ -18,9 +18,14 @@ allow_overwrite: `bool`, defaults to `False`
     If set to True, Files will be overwritten if existing without warning.
     On default value of `False` the file mode will be `r+` which can lead to
     exception if datasets already exist.
+squeeze_single: `bool`, defaults to `False`
+    If set to True, unpacked data containing a single key will be unpacked.
+    This can lead to issues with single key dicts containing sub dicts,
+    thus the default is the safer version (False)
 """
 default_suffix = '.hdf'
 use_lazy = True
 default_compression = (True, 5)
 allow_fallback_open = False
 allow_overwrite = False
+squeeze_single = False
