@@ -383,8 +383,6 @@ def load(hdf, lazy=True, unpack_attrs=False, unpacker=unpack_dataset):
         return data
 
     hdfl.close()
-    if len(data.keys()) == 1:
-        data = data[list(data.keys())[0]]
 
     return data
 
