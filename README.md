@@ -31,4 +31,4 @@ functionality to handle most of the pythonic data types and adds functions
 for convenient handling of the different data structures.
 
 
-Find the [Full documentation here](https://www.google.com)
+Find the [Full documentation here](https://itsh5py.readthedocs.io/en/latest)
