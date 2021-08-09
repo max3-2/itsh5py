@@ -69,6 +69,52 @@ class TestSupplementary(unittest.TestCase):
         itsh5py.config.use_lazy = False
         test_file.unlink()
 
+    def test_file_modes(self):
+        logger.info('Testing file modes')
+        data = self.test_data = {
+            'int_type': 1,
+            }
+
+        data_valid_append = {
+            'int_type_append': 1,
+            }
+
+        data_invalid_append = {
+            'int_type': 2,
+            }
+
+        # This should work since its two different datasets
+        test_file = itsh5py.save('test_file_modes', data)
+        test_file = itsh5py.save('test_file_modes', data_valid_append)
+        test_data_loaded = itsh5py.load(test_file)
+        self.assertDictEqual(test_data_loaded, {**data, **data_valid_append})
+        test_file.unlink()
+
+        # This will ValueError since the dataset exists
+        test_file = itsh5py.save('test_file_modes_2', data)
+        with self.assertRaises(ValueError):
+            test_file = itsh5py.save('test_file_modes_2', data_invalid_append)
+
+        # Only the old will be available
+        test_data_loaded = itsh5py.load(test_file)
+        self.assertEqual(data, test_data_loaded)
+        test_file.unlink()
+
+        # This will be forced to the new value
+        itsh5py.config.use_lazy = False
+        itsh5py.config.allow_overwrite = True
+
+        test_file = itsh5py.save('test_file_modes_3', data)
+        test_file = itsh5py.save('test_file_modes_3', data_invalid_append)
+
+        # Only the old will be available
+        test_data_loaded = itsh5py.load(test_file)
+        self.assertEqual(data_invalid_append, test_data_loaded)
+        test_file.unlink()
+
+        itsh5py.config.use_lazy = True
+        itsh5py.config.allow_overwrite = False
+
 
 class TestPathFlavors(unittest.TestCase):
     def setUp(self):
@@ -129,7 +175,7 @@ class TestBasicTypes(unittest.TestCase):
                                    Path('relative/test/pat2')],
                      'path_tuple': (Path('relative/test/path'),
                                     Path('relative/test/pat2')),
-                    }
+                     }
 
         test_file = itsh5py.save('test_pathes', test_data)
         test_data_loaded = itsh5py.load(test_file)
@@ -160,6 +206,7 @@ class TestBasicTypes(unittest.TestCase):
         test_file.unlink()
 
     def test_singleton(self):
+        itsh5py.config.squeeze_single = True
         test_data = {'int_type': 1,
                      }
 
@@ -168,7 +215,7 @@ class TestBasicTypes(unittest.TestCase):
 
         self.assertEqual(test_data_loaded, 1)
         test_file.unlink()
-
+        itsh5py.config.squeeze_single = False
 
 class TestIterableTypes(unittest.TestCase):
     def test_simple_iterables(self):
@@ -289,7 +336,9 @@ class TestArrayTypes(unittest.TestCase, CustomValidation):
 
 class TestPandasTypes(unittest.TestCase, CustomValidation):
     def test_single(self):
-        test_data = {'dataframe': pd.DataFrame(np.ones((100,5)))
+        itsh5py.config.squeeze_single = True
+
+        test_data = {'dataframe': pd.DataFrame(np.ones((100, 5)))
                      }
 
         test_file = itsh5py.save('test_dataframe', test_data)
@@ -297,18 +346,22 @@ class TestPandasTypes(unittest.TestCase, CustomValidation):
 
         assert_frame_equal(test_data['dataframe'], test_data_loaded)
         test_file.unlink()
+        itsh5py.config.squeeze_single = False
 
     def test_bare(self):
-        test_data = pd.DataFrame(np.ones((100,5)))
+        itsh5py.config.squeeze_single = True
+
+        test_data = pd.DataFrame(np.ones((100, 5)))
 
         test_file = itsh5py.save('test_dataframe_bare', test_data)
         test_data_loaded = itsh5py.load(test_file)
 
         assert_frame_equal(test_data, test_data_loaded)
         test_file.unlink()
+        itsh5py.config.squeeze_single = False
 
     def test_frame_lvl1(self):
-        test_data = {'dataframe': pd.DataFrame(np.ones((100,5))),
+        test_data = {'dataframe': pd.DataFrame(np.ones((100, 5))),
                      'meta': [1, 2, 3],
                      'meta2': np.array([1, 2., 3.]),
                      }
@@ -321,7 +374,7 @@ class TestPandasTypes(unittest.TestCase, CustomValidation):
         test_file.unlink()
 
     def test_frame_lvl2(self):
-        lvl2 = {'dataframe': pd.DataFrame(np.ones((100,5))),
+        lvl2 = {'dataframe': pd.DataFrame(np.ones((100, 5))),
                 'meta2': np.array([1, 2., 3.]),
                 }
         test_data = {'nested': lvl2,
@@ -404,6 +457,7 @@ class TestManyFiles(unittest.TestCase):
 
         itsh5py.config.allow_fallback_open = False
         itsh5py.config.use_lazy = False
+
 
 if __name__ == '__main__':
     if 'log' in argv[1:]:

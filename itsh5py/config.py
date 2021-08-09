@@ -16,7 +16,7 @@ allow_fallback_open: `bool`, defaults to `True`
     applications.
 allow_overwrite: `bool`, defaults to `False`
     If set to True, Files will be overwritten if existing without warning.
-    On default value of `False` the file mode will be `r+` which can lead to
+    On default value of `False` the file mode will be `a` which can lead to
     exception if datasets already exist.
 squeeze_single: `bool`, defaults to `False`
     If set to True, unpacked data containing a single key will be unpacked.
