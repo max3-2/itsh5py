@@ -2,8 +2,6 @@
 """
 import sys                             # system specifics
 from pathlib import Path               # file-system path
-import itsh5py as meta
-
 
 extensions = [
     'myst_parser',                     # Accept Markdown as input.
@@ -22,7 +20,7 @@ sys.path.insert(0, str(main))
 autodoc_mock_imports = ['numpy', 'pandas', 'h5py', 'pyyaml']
 
 # Import package to make meta data available.
-
+import itsh5py as meta
 
 ########################################
 # Configuration                        #
