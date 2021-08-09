@@ -15,9 +15,9 @@ allow_fallback_open: `bool`, defaults to `True`
     increase memory load and lead to access errors on files open by other
     applications.
 allow_overwrite: `bool`, defaults to `False`
-    If set to True, Files will be overwritten if existing without warning.
-    On default value of `False` the file mode will be `a` which can lead to
-    exception if datasets already exist.
+    If set to True, files will be overwritten if existing without warning.
+    On default value of `False` the file mode will be `a` which is safe but
+    can lead to exceptions if datasets already exist.
 squeeze_single: `bool`, defaults to `False`
     If set to True, unpacked data containing a single key will be unpacked.
     This can lead to issues with single key dicts containing sub dicts,
