@@ -12,9 +12,9 @@ requires = [
       'numpy > 1.19',
       'h5py > 3.0',
     ]
-requires-python = '>=3.6'
+requires-python = '>=3.7'
 license = 'MIT'
-home-page = "https://git.scc.kit.edu"
+home-page = "https://github.com/max3-2/itsh5py"
 description-file = 'README.md'
 keywords = 'h5py, hdf, data storage'
 classifiers = [
@@ -32,5 +32,5 @@ classifiers = [
 doc = ['Sphinx', 'Furo', 'MyST-parser']
 
 [tool.flit.metadata.urls]
-Documentation = 'https://readthedocs.com'
-Source = 'https://git.scc.kit.edu'
+Documentation = 'https://itsh5py.readthedocs.io/en/latest/'
+Source = 'https://github.com/max3-2/itsh5py'
