@@ -17,12 +17,13 @@ __pycache__/
 # Spyder project settings
 .spyderproject
 .spyproject
+.ropeproject
 
 # pyCharm project setting
 .idea
 .idea/
 
-# ms visual code settings 
+# ms visual code settings
 .vscode
 
 # mac folder index
@@ -41,3 +42,5 @@ doc/_templates/
 *.egg*
 build/
 dist/
+deploy/dist
+deploy/docs

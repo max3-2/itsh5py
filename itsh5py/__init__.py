@@ -1,25 +1,13 @@
-"""Main init file of itsh5py
+"""Python datatype support for hdf files
 """
-name = 'itsh5py'
-__version__ = '1.0'
+# Metadata
+__title__ = 'itsh5py'
+__version__ = '0.6.3'  # Remove on release, set to 0.6.0.
+__date__ = '2021–06–15'
+__author__ = 'Max Elfner'
+__copyright__ = 'Max Elfner, ITS, KIT https://www.its.kit.edu'
+__license__ = 'MIT'
 
-# This should only be enabled in rare debug cases!
-# import logging
-# # Initialize logger
-# logger = logging.getLogger(__package__)
-# logger.setLevel(logging.DEBUG)
-# _formatter = logging.Formatter(
-#     '%(asctime)s,%(msecs)d %(levelname)-8s [%(name)s:%(filename)s:%(lineno)d] %(message)s',
-#     datefmt='%Y-%m-%d_%H:%M:%S')
-#
-# _stream_handler = logging.StreamHandler()
-# _stream_handler.setFormatter(_formatter)
-# _stream_handler.setLevel(logging.INFO)
-# logger.addHandler(_stream_handler)
-
-# This protects the setup routine
-try:
-    from .hdfSupport import *
-    from .queueHandler import max_files, open_filenames
-except ModuleNotFoundError:
-    ...
+from .hdf_support import save, load, LazyHdfDict
+from .queue_handler import max_open_files, open_filenames
+from . import config

@@ -1,7 +1,13 @@
 # itsh5py
+*Python datatype support for hdf files*
+
+While there are many ways to store different data types, many of them have
+their drawbacks. Sometimes it can be practical to store arrays with
+additional (pythonic) data in a single file. While *hdf attributes* can
+support some types, many exception exists especially with pyhtonic types.
 
 This is a small implementation of recursive dict support for python to write
-and read h5 files with many different pythonic data types. Almost all types
+and read *hdf* files with many different pythonic data types. Almost all types
 implemented in default python and *numpy* should be supported, even in nested
 structures. The resulting files work in hdfview and panoply with some small
 drawbacks.
@@ -15,12 +21,14 @@ having fully loaded pythonic types and referenced *numpy* arrays in a single
 loaded file.
 
 Since this module is most likely used for data storage, please be warned that
-*tests are still a ToDo* and there is a good chance that you will encounter some
+*tests are still WiP* and there is a good chance that you will encounter some
 types that either **won't be saved** or possibly **break your file**. No
 warranty is given.
 
 The original idea was taken from [SiggiGue](https://github.com/SiggiGue/hdfdict)
 thus there are some obvious similarities. This package extends the
-functionality to handle most of the pythonic data types.
+functionality to handle most of the pythonic data types and adds functions
+for convenient handling of the different data structures.
+
 
 Find the [Full documentation here](https://www.google.com)
