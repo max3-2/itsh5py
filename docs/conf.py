@@ -2,6 +2,7 @@
 """
 import sys                             # system specifics
 from pathlib import Path               # file-system path
+from unittest.mock import MagicMock    # mock imports
 
 extensions = [
     'myst_parser',                     # Accept Markdown as input.
@@ -18,6 +19,8 @@ sys.path.insert(0, str(main))
 
 # Mock external dependencies so they are not required at build time.
 autodoc_mock_imports = ['numpy', 'pandas', 'h5py', 'pyyaml']
+for package in autodoc_mock_imports:
+    sys.modules[package] = MagicMock()
 
 # Import package to make meta data available.
 import itsh5py as meta
