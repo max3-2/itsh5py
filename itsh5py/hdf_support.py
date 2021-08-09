@@ -673,7 +673,7 @@ def save(hdf, data, compress=config.default_compression, packer=pack_dataset,
     which are added as root level attributes to the hdf file. Those must be
     scalar, else exceptions will occur.
 
-    *args and kwargs will be passed to the `h5py.File` constructor.
+    `\*args` and `\*\*kwargs` will be passed to the `h5py.File` constructor.
 
     Parameters
     -----------
