@@ -736,7 +736,7 @@ def save(hdf, data, compress=config.default_compression, packer=pack_dataset,
     if config.allow_overwrite:
         file_mode = 'w'
     else:
-        file_mode = 'r+'
+        file_mode = 'a'
 
     # Dataframe in dict. Pandas is stored in advance...stupid file lock in
     # pandas prevents otherwise.
