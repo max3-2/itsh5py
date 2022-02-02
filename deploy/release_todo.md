@@ -2,7 +2,7 @@
 * Bump version number and enter current date in `itsh5py/__init__.py`.
 * Add the release notes to `docs/releases.md`.
 * Add a dedicated commit for the version bump.
-* Tag the commit with the version number
+* Tag the commit with the version number, use git tag -a tagname to specify message
 * Push the commit (but not the tag)
 * Check that documentation built successfully on Read-the-Docs.
 * Publish to PyPI by running `deploy/publish.py`.

@@ -2,8 +2,8 @@
 """
 # Metadata
 __title__ = 'itsh5py'
-__version__ = '0.7.0'
-__date__ = '2021–08–09'
+__version__ = '0.7.1'
+__date__ = '2022-02-02'
 __author__ = 'Max Elfner'
 __copyright__ = 'Max Elfner'
 __license__ = 'MIT'
