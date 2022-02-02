@@ -5,7 +5,7 @@ build-backend = "flit_core.buildapi"
 [tool.flit.metadata]
 dist-name = 'itsh5py'
 module = 'itsh5py'
-author = 'Max Elfner <maximilian.elfner@kit.edu>'
+author = 'Max Elfner <max_elfner@gmx.net>'
 requires = [
       'PyYAML',
       'pandas',
