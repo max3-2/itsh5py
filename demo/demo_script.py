@@ -19,7 +19,8 @@ z = np.sin(x + y) + np.sin(2 * x - y) + np.cos(3 * x + 4 * y)
 # plt.savefig('cont_demo.png', transparent=True, dpi=150)
 
 demo_file = itsh5py.save('demo', {'x': x, 'y': y, 'data': z})
-demo_2_file = itsh5py.save('demo2', {'x': x, 'y': y, 'data': z, 'meta': ['type1', 2.]})
+demo_2_file = itsh5py.save(
+    'demo2', {'x': x, 'y': y, 'data': z, 'meta': ['type1', 2.]})
 
 lazy_demo = itsh5py.load('demo')
 lazy_demo_2 = itsh5py.load('demo2')
@@ -32,8 +33,8 @@ itsh5py.config.use_lazy = True
 
 file = itsh5py.save('demo_att',
                     {'x': x, 'y': y, 'data': z,
-                      'attrs': {'additional_str': 'meta_string',
-                                'addition_float': 100.,
+                     'attrs': {'additional_str': 'meta_string',
+                               'addition_float': 100.,
                                 },
                      })
 

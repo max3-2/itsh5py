@@ -15,6 +15,7 @@ import itsh5py
 logger = logging.getLogger('itsh5py')
 itsh5py.config.use_lazy = False  # Set lazy to False so the data can be compared.
 
+
 class CustomValidation(object):
     def assertDictEqual_with_arrays(self, d1, d2):
         assert d1.keys() == d2.keys(), "Dict mismatch in keys"
@@ -217,6 +218,7 @@ class TestBasicTypes(unittest.TestCase):
         test_file.unlink()
         itsh5py.config.squeeze_single = False
 
+
 class TestIterableTypes(unittest.TestCase):
     def test_simple_iterables(self):
         test_data = {'list_type': [1, 2, 3],  # fails due to array conv.
@@ -385,6 +387,7 @@ class TestPandasTypes(unittest.TestCase, CustomValidation):
             _ = itsh5py.save('test_dataframe_lvl2', test_data)
 
         Path('test_dataframe_lvl2' + itsh5py.config.default_suffix).unlink()
+
 
 class TestInvalidType(unittest.TestCase):
     """Tests a fail, here we use a callable which is not implemented

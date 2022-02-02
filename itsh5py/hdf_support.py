@@ -97,6 +97,7 @@ class LazyHdfDict(UserDict):
     args, kwargs:
         Passed to the parent `UserDcit` implemented type.
     """
+
     def __init__(self, _h5file=None, group='/', *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._h5file = None
@@ -650,7 +651,7 @@ def pack_dataset(hdfobject, key, value, compress):
                 ds = hdfobject.create_dataset(
                     name=key,
                     data=yaml.safe_dump(value)
-                )
+                    )
                 ds.attrs.create(
                     name=TYPEID,
                     data=str("yaml"))
