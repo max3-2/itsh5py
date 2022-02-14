@@ -22,6 +22,9 @@ squeeze_single: `bool`, defaults to `False`
     If set to True, unpacked data containing a single key will be unpacked.
     This can lead to issues with single key dicts containing sub dicts,
     thus the default is the safer version (False)
+max_tree_children: `int`, defaults to 30
+    Maximum number of children in a group for the tree view to keep recursing.
+    This can help to reduce tree size with very large files.
 """
 default_suffix = '.hdf'
 use_lazy = True
@@ -29,3 +32,4 @@ default_compression = (True, 5)
 allow_fallback_open = False
 allow_overwrite = False
 squeeze_single = False
+max_tree_children = 30

@@ -22,17 +22,22 @@ logger = getLogger(__package__)
 TYPEID = '_TYPE_'
 
 
-def _tree(hdf, levels=[], max_depth=None, buffer=None, printout=True):
+def _tree(hdf, levels=[], max_depth=None, buffer=None, large_mode=False,
+          printout=True):
     """
     Displays the hdf tree for lazy dicts.
 
     This function displays a representation of the hdf file tree without
     loading the actual datasets. Basic information is printed.
     """
+    large_tree = False
     if max_depth and len(levels) > max_depth:
         return
     markers = ''.join('   ' if last else '│  ' for last in levels[:-1])
-    markers += '' if not levels else '└─ ' if levels[-1] else '├─ '
+    if large_mode:
+        markers += '' if not levels else '├─ '
+    else:
+        markers += '' if not levels else '└─ ' if levels[-1] else '├─ '
 
     if buffer is None:
         buffer = ''
@@ -57,11 +62,22 @@ def _tree(hdf, levels=[], max_depth=None, buffer=None, printout=True):
         buffer += msg + '\n'
 
         children = hdf.keys()
+        if len(children) > config.max_tree_children:  # catching very large files
+            omitted = len(children) - config.max_tree_children
+            children = list(children)[:config.max_tree_children]
+            large_tree = True
+
         last = len(children) - 1
         for (index, child) in enumerate(children):
             buffer = _tree(
                 hdf[child], levels + [index == last], max_depth, buffer=buffer,
-                printout=printout)
+                large_mode=large_tree, printout=printout)
+
+        if large_tree:
+            markers = ''.join('   ' if last else '│  '
+                              for last in (levels + [index == last])[:-1])
+            markers += '└─>'
+            buffer += f'{markers} ...and {omitted} more omitted\n'
 
     elif isinstance(hdf, h5py.Dataset):
         if hdf.ndim == 0 and TYPEID not in hdf.attrs:
