@@ -4,7 +4,7 @@
 This is just a maintenance release after some time with just a small QoL
 feature when working with large files.
 
-* [Published](https://pypi.org/project/itsh5py/0.7.2) on TODO
+* [Published](https://pypi.org/project/itsh5py/0.7.2) on 2023-01-28
 * Added support for the new config `max_tree_children` to reduce too large tree
   views with a default of 30 elements per group.
 * Fixed some minor issues in the documentation
